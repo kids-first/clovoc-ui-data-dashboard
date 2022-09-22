@@ -13,7 +13,17 @@ $ git clone git@github.com:kids-first/clovoc-ui-data-dashboard.git
 $ cd clovoc-ui-data-dashboard
 ```
 
-3. Put a FHIR cookie to the `fhir_api_cookie` variable of your api tabulation plugin.
+3. Create a `.env` file in the root directory:
+
+```
+FHIR_API_COOKIE="YOUR-FHIR-API-COOKIE"
+```
+
+or export an environmental variable in your command line interface:
+
+```
+$ export FHIR_API_COOKIE="YOUR-FHIR-API-COOKIE"
+```
 
 4. Run the script below. Once successfully run, the data dashboard is available at [http://localhost:3838](http://localhost:3838):
 
