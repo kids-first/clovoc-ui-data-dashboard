@@ -1,5 +1,5 @@
 #
-# This moudle extracts and tabulates FHIR resources
+# This moudle extracts and tabulates FHIR resources from INCLUDE FHIR API
 #
 
 setwd(getwd())
@@ -161,7 +161,7 @@ patients <- merge(
 )
 
 # Cache Patient IDs and Identifiers
-patient_ids = patients[ , c("Patient ID", "Patient Identifier")]
+patient_ids <- patients[, c("Patient ID", "Patient Identifier")]
 
 # Drop columns
 patients <- within(patients, rm("Patient ID"))
