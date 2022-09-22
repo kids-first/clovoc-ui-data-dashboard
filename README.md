@@ -15,11 +15,13 @@ $ cd clovoc-ui-data-dashboard
 
 3. Put a FHIR cookie to the `fhir_api_cookie` variable of your api tabulation plugin.
 
-4. Run the script:
+4. Run the script below. Once successfully run, the data dashboard is available at [http://localhost:3838](http://localhost:3838):
 
 ```
 $ ./scripts/entrypoint.sh
 ```
+
+![Dashboard](./docs/dashboard.png)
 
 ## Development
 
