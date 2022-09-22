@@ -1,5 +1,5 @@
 #
-# This moudle extracts and tabulates FHIR resources from INCLUDE FHIR API
+# This moudle extracts and tabulates FHIR resources from CLOVoc FHIR API
 #
 
 setwd(getwd())
@@ -17,21 +17,17 @@ LoadRequiredPackages(required_packages)
 load_dot_env()
 
 # Get FHIR credentails
-fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
-fhir_api_cookie <- Sys.getenv("INCLUDE_FHIR_API_COOKIE")
+fhir_api_url <- "https://clovoc-api-fhir-service-dev.kf-strides.org/"
+fhir_api_cookie <- Sys.getenv("CLOVOC_FHIR_API_COOKIE")
 
-# Define parameters and headers
-tags <- c("DS360-CHD", "DS-COG-ALL", "DS-PCGC")
-tags <- paste(tags, collapse = ",")
+# Define headers
 cookies <- c(Cookie = fhir_api_cookie)
 
 
 # /Group
 # Build a request URL for Group
 group_request <- fhir_url(
-    url = fhir_api_url,
-    resource = "Group",
-    parameters = c("_count" = 100, "_tag" = tags)
+    url = fhir_api_url, resource = "Group", parameters = c("_count" = "100")
 )
 
 # Download bundles of Group resources
@@ -44,8 +40,7 @@ group_description <- fhir_table_description(
     resource = "Group",
     cols = c(
         "ResearchStudy Identifier" = "meta/tag/code",
-        "Group Identifier System" = "identifier/system",
-        "Group Identifier Value" = "identifier/value",
+        "Group Identifier" = "identifier/value",
         "Patient ID" = "member/entity/reference"
     ),
     sep = " ~ ",
@@ -61,16 +56,6 @@ groups <- fhir_crack(
 
 # Melt columns
 groups <- fhir_melt(
-    groups,
-    columns = c(
-        "Group Identifier System",
-        "Group Identifier Value"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    all_columns = TRUE
-)
-groups <- fhir_melt(
     groups, columns = c("Patient ID"),
     sep = " ~ ",
     brackets = c("<<", ">>"),
@@ -80,31 +65,20 @@ groups <- fhir_melt(
 # Remove indices
 groups <- fhir_rm_indices(groups, brackets = c("<<", ">>"))
 
-# Replace NA with empty string
-groups <- ReplaceNA(groups)
-
-# Filter rows
-group_filter <- "https://kf-api-dataservice.kidsfirstdrc.org/families/"
-groups <- groups[groups$"Group Identifier System" != group_filter, ]
-
 # Extract patient IDs
 groups$"Patient ID" <- unlist(lapply(groups$"Patient ID", ParsePatientID))
 
 # Drop columns
-groups <- within(groups, rm("Group Identifier System", "resource_identifier"))
+groups <- within(groups, rm("resource_identifier"))
 
-# Change column names
-setnames(
-    groups, old = c("Group Identifier Value"), new = c("Group Identifier")
-)
+# Replace NA with empty string
+groups <- ReplaceNA(groups)
 
 
 # /Patient
 # Build a request URL for Patient
 patient_request <- fhir_url(
-    url = fhir_api_url,
-    resource = "Patient",
-    parameters = c("_count" = 100, "_tag" = tags)
+    url = fhir_api_url, resource = "Patient", parameters = c("_count" = "100")
 )
 
 # Download bundles of Patient resources
@@ -117,8 +91,7 @@ patient_description <- fhir_table_description(
     resource = "Patient",
     cols = c(
         "Patient ID" = "id",
-        "Patient Identifier System" = "identifier/system",
-        "Patient Identifier Value" = "identifier/value",
+        "Patient Identifier" = "identifier/value",
         "Race ~ Ethnicity" = "extension/extension/valueString",
         "Gender" = "gender"
     ),
@@ -133,18 +106,12 @@ patients <- fhir_crack(
     bundles = patient_bundles, design = patient_description, verbose = 2
 )
 
-# Drop columns
-patients <- within(
-    patients,
-    rm("<<1.1>>Patient Identifier System", "<<1.1>>Patient Identifier Value")
-)
-
 # Change column names
 setnames(
     patients,
     old = c(
         "<<1>>Patient ID",
-        "<<2.1>>Patient Identifier Value",
+        "<<1.1>>Patient Identifier",
         "<<1.1.1>>Race ~ Ethnicity",
         "<<2.1.1>>Race ~ Ethnicity",
         "<<1>>Gender"
@@ -172,7 +139,7 @@ patients <- within(patients, rm("Patient ID"))
 condition_request <- fhir_url(
     url = fhir_api_url,
     resource = "Condition",
-    parameters = c("_count" = 100, "_tag" = tags)
+    parameters = c("_count" = "100")
 )
 
 # Download bundles of Condition resources
@@ -232,9 +199,7 @@ conditions <- ReplaceNA(conditions)
 # /Specimen
 # Build a request URL for Specimen
 specimen_request <- fhir_url(
-    url = fhir_api_url,
-    resource = "Specimen",
-    parameters = c("_count" = 100, "_tag" = tags)
+    url = fhir_api_url, resource = "Specimen", parameters = c("_count" = "100")
 )
 
 # Download bundles of Specimen resources
@@ -247,8 +212,7 @@ specimen_description <- fhir_table_description(
     resource = "Specimen",
     cols = c(
         "Patient ID" = "subject/reference",
-        "Specimen Identifier System" = "identifier/system",
-        "Specimen Identifier Value" = "identifier/value",
+        "Specimen Identifier" = "identifier/value",
         "Specimen Status" = "status",
         "Specimen Type Name" = "type/text",
         "Specimen Type Ontology URI" = "type/coding/system",
@@ -260,7 +224,7 @@ specimen_description <- fhir_table_description(
     sep = " ~ ",
     brackets = c("<<", ">>"),
     rm_empty_cols = FALSE,
-    format = "wide"
+    format = "compact"
 )
 
 # Flatten Specimen resources
@@ -268,26 +232,11 @@ specimens <- fhir_crack(
     bundles = specimen_bundles, design = specimen_description, verbose = 2
 )
 
-# Change column names
-setnames(
-    specimens,
-    old = c(
-        "<<1.1>>Patient ID",
-        "<<1.1>>Specimen Identifier Value",
-        "<<1>>Specimen Status",
-        "<<1.1>>Specimen Type Name",
-        "<<1.1.1>>Specimen Type Ontology URI",
-        "<<1.1.1>>Specimen Type Code"
-    ),
-    new = c(
-        "Patient ID",
-        "Specimen Identifier",
-        "Specimen Status",
-        "Specimen Type Name",
-        "Specimen Type Ontology URI",
-        "Specimen Type Code"
-    )
-)
+# Remove indices
+specimens <- fhir_rm_indices(specimens, brackets = c("<<", ">>"))
+
+# Replace NA with empty string
+specimens <- ReplaceNA(specimens)
 
 # Extract patient IDs
 specimens$"Patient ID" <- unlist(
@@ -304,18 +253,7 @@ specimens <- merge(
 )
 
 # Drop columns
-specimens <- within(
-    specimens,
-    rm(
-        "Patient ID",
-        "<<2.1>>Specimen Identifier System",
-        "<<2.1>>Specimen Identifier Value",
-        "<<3.1>>Specimen Identifier Value"
-    )
-)
-
-# Replace NA with empty string
-specimens <- ReplaceNA(specimens)
+specimens <- within(specimens, rm("Patient ID"))
 
 
 # /DocumentReference
@@ -323,7 +261,7 @@ specimens <- ReplaceNA(specimens)
 document_reference_request <- fhir_url(
     url = fhir_api_url,
     resource = "DocumentReference",
-    parameters = c("_count" = 100, "_tag" = tags)
+    parameters = c("_count" = "100")
 )
 
 # Download bundles of DocumentReference resources
@@ -339,13 +277,14 @@ document_reference_description <- fhir_table_description(
         "DocumentReference Status" = "status",
         "Document Status" = "docStatus",
         "Document Type" = "type/text",
-        "Experiment Strategy ~ Data Category" = "category/coding/display",
+        "Experiment Strategy " = "_experiment_strategy",
+        "Data Category" = "category/coding/display",
         "URL" = "content/attachment/url"
     ),
     sep = " ~ ",
     brackets = c("<<", ">>"),
     rm_empty_cols = FALSE,
-    format = "wide"
+    format = "compact"
 )
 
 # Flatten DocumentReference resources
@@ -355,28 +294,13 @@ document_references <- fhir_crack(
     verbose = 2
 )
 
-# Change column names
-setnames(
-    document_references,
-    old = c(
-        "<<1.1>>Patient ID",
-        "<<1>>DocumentReference Status",
-        "<<1>>Document Status",
-        "<<1.1>>Document Type",
-        "<<1.1.1>>Experiment Strategy ~ Data Category",
-        "<<2.1.1>>Experiment Strategy ~ Data Category",
-        "<<1.1.1>>URL"
-    ),
-    new = c(
-        "Patient ID",
-        "DocumentReference Status",
-        "Document Status",
-        "Document Type",
-        "Experiment Strategy",
-        "Data Category",
-        "URL"
-    )
+# Remove indices
+document_references <- fhir_rm_indices(
+    document_references, brackets = c("<<", ">>")
 )
+
+# Replace NA with empty string
+document_references <- ReplaceNA(document_references)
 
 # Extract patient IDs
 document_references$"Patient ID" <- unlist(
@@ -395,12 +319,9 @@ document_references <- merge(
 # Drop columns
 document_references <- within(document_references, rm("Patient ID"))
 
-# Replace NA with empty string
-document_references <- ReplaceNA(document_references)
-
 
 # Cache data frames
-include_api_fhir_service <- list(
+clovoc_api_fhir_service <- list(
     "Patient" = patients,
     "Condition" = conditions,
     "Specimen" = specimens,

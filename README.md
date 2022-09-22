@@ -4,7 +4,7 @@ The CLOVoc UI Data Dashboard pulls JSON resources from a FHIR API(s), tabluates 
 
 ## Quickstart
 
-1. Make sure R is installed on your local machine or remote server where the tabulator is deployed.
+1. Make sure R is installed on your local machine or remote server where the dashboard is deployed.
 
 2. Clone this repository:
 
