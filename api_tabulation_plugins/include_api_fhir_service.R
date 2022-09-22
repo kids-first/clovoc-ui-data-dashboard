@@ -7,16 +7,20 @@ source("common.R", local = TRUE)
 
 # Install or load dependencies
 required_packages <- c(
+    "dotenv",
     "fhircrackr",
     "data.table"
 )
 LoadRequiredPackages(required_packages)
 
-# Define constants
-fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
-fhir_api_cookie <- ""
+# Load environmental variables
+load_dot_env()
 
-# Definte parameters and headers
+# Get FHIR credentails
+fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
+fhir_api_cookie <- Sys.getenv("INCLUDE_FHIR_API_COOKIE")
+
+# Define parameters and headers
 tags <- c("DS360-CHD", "DS-COG-ALL", "DS-PCGC")
 tags <- paste(tags, collapse = ",")
 cookies <- c(Cookie = fhir_api_cookie)
