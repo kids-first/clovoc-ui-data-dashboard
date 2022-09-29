@@ -7,14 +7,14 @@ source("common.R", local = TRUE)
 
 # Install or load dependencies
 required_packages <- c(
-    "dotenv",
+    # "dotenv",
     "fhircrackr",
     "data.table"
 )
 LoadRequiredPackages(required_packages)
 
 # Load environmental variables
-load_dot_env()
+# load_dot_env()
 
 # Get FHIR credentails
 fhir_api_url <- "https://clovoc-api-fhir-service-dev.kf-strides.org/"
