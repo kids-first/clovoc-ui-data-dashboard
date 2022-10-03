@@ -14,8 +14,8 @@ required_packages <- c(
 )
 LoadRequiredPackages(required_packages)
 
-remotes::install_github(repo = "https://github.com/POLAR-fhiR/fhircrackr")
-library(fhircrackr, character.only = TRUE)
+remotes::install_github(repo = "https://github.com/POLAR-fhiR/fhircrackr", ref = "master")
+library(fhircrackr)
 
 # Load environmental variables
 # load_dot_env()
