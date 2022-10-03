@@ -5,16 +5,17 @@
 setwd(getwd())
 source("common.R", local = TRUE)
 
-remotes::install_github(repo = "https://github.com/POLAR-fhiR/fhircrackr")
-
 # Install or load dependencies
 required_packages <- c(
     # "dotenv",
-    "fhircrackr",
+    # "fhircrackr",
     "remotes",
     "data.table"
 )
 LoadRequiredPackages(required_packages)
+
+remotes::install_github(repo = "https://github.com/POLAR-fhiR/fhircrackr")
+library(fhircrackr, character.only = TRUE)
 
 # Load environmental variables
 # load_dot_env()
