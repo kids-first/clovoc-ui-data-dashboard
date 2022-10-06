@@ -21,8 +21,14 @@ library(fhircrackr)
 # load_dot_env()
 
 # Get FHIR credentails
-fhir_api_url <- "https://clovoc-api-fhir-service-dev.kf-strides.org/"
-fhir_api_cookie <- Sys.getenv("CLOVOC_FHIR_API_COOKIE")
+fhir_api_url <- Sys.getenv("CLOVOC_BASE_URL")
+fhir_api_cookie <- fhir_api_cookie <- fhircrackr::fhir_authenticate(
+  secret = Sys.getenv("CLOVOC_SECRET"),
+  key = Sys.getenv("CLOVOC_ID"),
+  base_url = fhir_api_url,
+  access = Sys.env("CLOVOC_ACCESS_URL"),
+  authorize = Sys.env("CLOVOC_AUTH_URL")
+)
 
 # Define headers
 cookies <- c(Cookie = fhir_api_cookie)

@@ -21,8 +21,14 @@ library(fhircrackr)
 # load_dot_env()
 
 # Get FHIR credentails
-fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
-fhir_api_cookie <- Sys.getenv("INCLUDE_FHIR_API_COOKIE")
+fhir_api_url <- Sys.env("INCLUDE_BASE_URL")
+fhir_api_cookie <- fhircrackr::fhir_authenticate(
+  secret = Sys.getenv("INCLUDE_SECRET"),
+  key = Sys.getenv("INCLUDE_ID"),
+  base_url = fhir_api_url,
+  access = Sys.env("INCLUDE_ACCESS_URL"),
+  authorize = Sys.env("INCLUDE_AUTH_URL")
+)
 
 # Define parameters and headers
 tags <- c("DS360-CHD", "DS-COG-ALL", "DS-PCGC")
