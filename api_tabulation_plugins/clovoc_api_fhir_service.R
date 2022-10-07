@@ -26,8 +26,8 @@ fhir_api_cookie <- fhir_api_cookie <- fhircrackr::fhir_authenticate(
   secret = Sys.getenv("CLOVOC_SECRET"),
   key = Sys.getenv("CLOVOC_ID"),
   base_url = fhir_api_url,
-  access = Sys.env("CLOVOC_ACCESS_URL"),
-  authorize = Sys.env("CLOVOC_AUTH_URL")
+  access = Sys.getenv("CLOVOC_ACCESS_URL"),
+  authorize = Sys.getenv("CLOVOC_AUTH_URL")
 )
 
 # Define headers

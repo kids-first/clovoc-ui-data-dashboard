@@ -26,8 +26,8 @@ fhir_api_cookie <- fhircrackr::fhir_authenticate(
   secret = Sys.getenv("INCLUDE_SECRET"),
   key = Sys.getenv("INCLUDE_ID"),
   base_url = fhir_api_url,
-  access = Sys.env("INCLUDE_ACCESS_URL"),
-  authorize = Sys.env("INCLUDE_AUTH_URL")
+  access = Sys.getenv("INCLUDE_ACCESS_URL"),
+  authorize = Sys.getenv("INCLUDE_AUTH_URL")
 )
 
 # Define parameters and headers
