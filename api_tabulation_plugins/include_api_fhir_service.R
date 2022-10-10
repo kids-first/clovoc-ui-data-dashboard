@@ -21,7 +21,7 @@ library(fhircrackr)
 # load_dot_env()
 
 # Get FHIR credentails
-fhir_api_url <- Sys.env("INCLUDE_BASE_URL")
+fhir_api_url <- Sys.getenv("INCLUDE_BASE_URL")
 fhir_api_cookie <- fhircrackr::fhir_authenticate(
   secret = Sys.getenv("INCLUDE_SECRET"),
   key = Sys.getenv("INCLUDE_ID"),
