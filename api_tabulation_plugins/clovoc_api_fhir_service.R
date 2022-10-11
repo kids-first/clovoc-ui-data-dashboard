@@ -1,24 +1,7 @@
 #
 # This moudle extracts and tabulates FHIR resources from CLOVoc FHIR API
 #
-
-setwd(getwd())
 source("common.R", local = TRUE)
-
-# Install or load dependencies
-required_packages <- c(
-    # "dotenv",
-    # "fhircrackr",
-    "remotes",
-    "data.table"
-)
-LoadRequiredPackages(required_packages)
-
-remotes::install_github(repo = "https://github.com/POLAR-fhiR/fhircrackr", ref = "master")
-library(fhircrackr)
-
-# Load environmental variables
-# load_dot_env()
 
 # Get FHIR credentails
 fhir_api_url <- Sys.getenv("CLOVOC_BASE_URL")
