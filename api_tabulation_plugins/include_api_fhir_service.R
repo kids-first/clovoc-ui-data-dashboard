@@ -22,7 +22,7 @@ library(fhircrackr)
 
 # Get FHIR credentails
 fhir_api_url <- Sys.getenv("INCLUDE_BASE_URL")
-fhir_api_cookie <- fhircrackr::fhir_authenticate(
+fhir_api_token <- fhircrackr::fhir_authenticate(
   secret = Sys.getenv("INCLUDE_SECRET"),
   key = Sys.getenv("INCLUDE_ID"),
   base_url = fhir_api_url,
@@ -45,7 +45,9 @@ group_request <- fhir_url(
 
 # Download bundles of Group resources
 group_bundles <- fhir_search(
-    request = group_request, verbose = 2
+    request = group_request,
+    token = fhir_api_token,
+    verbose = 2
 )
 
 # Define a Group table description
@@ -118,7 +120,9 @@ patient_request <- fhir_url(
 
 # Download bundles of Patient resources
 patient_bundles <- fhir_search(
-    request = patient_request, verbose = 2
+    request = patient_request,
+    token = fhir_api_token,
+    verbose = 2
 )
 
 # Define a Patient table description
@@ -186,7 +190,9 @@ condition_request <- fhir_url(
 
 # Download bundles of Condition resources
 condition_bundles <- fhir_search(
-    request = condition_request, verbose = 2
+    request = condition_request,
+    token = fhir_api_token,
+    verbose = 2
 )
 
 # Define a Condition table description
@@ -248,7 +254,9 @@ specimen_request <- fhir_url(
 
 # Download bundles of Specimen resources
 specimen_bundles <- fhir_search(
-    request = specimen_request, verbose = 2
+    request = specimen_request,
+    token = fhir_api_token,
+    verbose = 2
 )
 
 # Define a table description
@@ -337,7 +345,9 @@ document_reference_request <- fhir_url(
 
 # Download bundles of DocumentReference resources
 document_reference_bundles <- fhir_search(
-    request = document_reference_request, verbose = 2
+    request = document_reference_request,
+    token = fhir_api_token,
+    verbose = 2
 )
 
 # Define a table description
