@@ -15,19 +15,19 @@ fhir_api_token <- fhircrackr::fhir_authenticate(
 
 # /Group
 # Build a request URL for Group
-group_request <- fhir_url(
+group_request <- fhircrackr::fhir_url(
     url = fhir_api_url, resource = "Group", parameters = c("_count" = "100")
 )
 
 # Download bundles of Group resources
-group_bundles <- fhir_search(
+group_bundles <- fhircrackr::fhir_search(
     request = group_request,
     token = fhir_api_token,
     verbose = 2
 )
 
 # Define a Group table description
-group_description <- fhir_table_description(
+group_description <- fhircrackr::fhir_table_description(
     resource = "Group",
     cols = c(
         "ResearchStudy Identifier" = "meta/tag/code",
@@ -41,12 +41,12 @@ group_description <- fhir_table_description(
 )
 
 # Flatten Group resources
-groups <- fhir_crack(
+groups <- fhircrackr::fhir_crack(
     bundles = group_bundles, design = group_description, verbose = 2
 )
 
 # Melt columns
-groups <- fhir_melt(
+groups <- fhircrackr::fhir_melt(
     groups, columns = c("Patient ID"),
     sep = " ~ ",
     brackets = c("<<", ">>"),
@@ -54,7 +54,7 @@ groups <- fhir_melt(
 )
 
 # Remove indices
-groups <- fhir_rm_indices(groups, brackets = c("<<", ">>"))
+groups <- fhircrackr::fhir_rm_indices(groups, brackets = c("<<", ">>"))
 
 # Extract patient IDs
 groups$"Patient ID" <- unlist(lapply(groups$"Patient ID", ParsePatientID))
@@ -68,19 +68,19 @@ groups <- ReplaceNA(groups)
 
 # /Patient
 # Build a request URL for Patient
-patient_request <- fhir_url(
+patient_request <- fhircrackr::fhir_url(
     url = fhir_api_url, resource = "Patient", parameters = c("_count" = "100")
 )
 
 # Download bundles of Patient resources
-patient_bundles <- fhir_search(
+patient_bundles <- fhircrackr::fhir_search(
     request = patient_request,
     token = fhir_api_token,
     verbose = 2
 )
 
 # Define a Patient table description
-patient_description <- fhir_table_description(
+patient_description <- fhircrackr::fhir_table_description(
     resource = "Patient",
     cols = c(
         "Patient ID" = "id",
@@ -95,7 +95,7 @@ patient_description <- fhir_table_description(
 )
 
 # Flatten Patient resources
-patients <- fhir_crack(
+patients <- fhircrackr::fhir_crack(
     bundles = patient_bundles, design = patient_description, verbose = 2
 )
 
@@ -129,21 +129,21 @@ patients <- within(patients, rm("Patient ID"))
 
 # /Condition
 # Build a request URL for Condition
-condition_request <- fhir_url(
+condition_request <- fhircrackr::fhir_url(
     url = fhir_api_url,
     resource = "Condition",
     parameters = c("_count" = "100")
 )
 
 # Download bundles of Condition resources
-condition_bundles <- fhir_search(
+condition_bundles <- fhircrackr::fhir_search(
     request = condition_request,
     token = fhir_api_token,
     verbose = 2
 )
 
 # Define a Condition table description
-condition_description <- fhir_table_description(
+condition_description <- fhircrackr::fhir_table_description(
     resource = "Condition",
     cols = c(
         "Patient ID" = "subject/reference",
@@ -163,12 +163,12 @@ condition_description <- fhir_table_description(
 )
 
 # Flatten Condition resources
-conditions <- fhir_crack(
+conditions <- fhircrackr::fhir_crack(
     bundles = condition_bundles, design = condition_description, verbose = 2
 )
 
 # Remove indices
-conditions <- fhir_rm_indices(conditions, brackets = c("<<", ">>"))
+conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
 
 # Extract patient IDs
 conditions$"Patient ID" <- unlist(
@@ -193,19 +193,19 @@ conditions <- ReplaceNA(conditions)
 
 # /Specimen
 # Build a request URL for Specimen
-specimen_request <- fhir_url(
+specimen_request <- fhircrackr::fhir_url(
     url = fhir_api_url, resource = "Specimen", parameters = c("_count" = "100")
 )
 
 # Download bundles of Specimen resources
-specimen_bundles <- fhir_search(
+specimen_bundles <- fhircrackr::fhir_search(
     request = specimen_request,
     token = fhir_api_token,
     verbose = 2
 )
 
 # Define a table description
-specimen_description <- fhir_table_description(
+specimen_description <- fhircrackr::fhir_table_description(
     resource = "Specimen",
     cols = c(
         "Patient ID" = "subject/reference",
@@ -225,12 +225,12 @@ specimen_description <- fhir_table_description(
 )
 
 # Flatten Specimen resources
-specimens <- fhir_crack(
+specimens <- fhircrackr::fhir_crack(
     bundles = specimen_bundles, design = specimen_description, verbose = 2
 )
 
 # Remove indices
-specimens <- fhir_rm_indices(specimens, brackets = c("<<", ">>"))
+specimens <- fhircrackr::fhir_rm_indices(specimens, brackets = c("<<", ">>"))
 
 # Replace NA with empty string
 specimens <- ReplaceNA(specimens)
@@ -255,21 +255,21 @@ specimens <- within(specimens, rm("Patient ID"))
 
 # /DocumentReference
 # Build a request URL for DocumentReference
-document_reference_request <- fhir_url(
+document_reference_request <- fhircrackr::fhir_url(
     url = fhir_api_url,
     resource = "DocumentReference",
     parameters = c("_count" = "100")
 )
 
 # Download bundles of DocumentReference resources
-document_reference_bundles <- fhir_search(
+document_reference_bundles <- fhircrackr::fhir_search(
     request = document_reference_request,
     token = fhir_api_token,
     verbose = 2
 )
 
 # Define a table description
-document_reference_description <- fhir_table_description(
+document_reference_description <- fhircrackr::fhir_table_description(
     resource = "DocumentReference",
     cols = c(
         "Patient ID" = "subject/reference",
@@ -287,14 +287,14 @@ document_reference_description <- fhir_table_description(
 )
 
 # Flatten DocumentReference resources
-document_references <- fhir_crack(
+document_references <- fhircrackr::fhir_crack(
     bundles = document_reference_bundles,
     design = document_reference_description,
     verbose = 2
 )
 
 # Remove indices
-document_references <- fhir_rm_indices(
+document_references <- fhircrackr::fhir_rm_indices(
     document_references, brackets = c("<<", ">>")
 )
 
