@@ -8,3 +8,5 @@ Sys.setenv("INCLUDE_ACCESS_URL" = "https://keycloak.includedcc.org/auth/")
 Sys.setenv("INCLUDE_AUTH_URL" = "https://keycloak.includedcc.org/auth/")
 Sys.setenv("INCLUDE_ID" = "XXXXXXXXX")
 Sys.setenv("INCLUDE_SECRET" = "XXXXXXXXX")
+
+source("renv/activate.R")

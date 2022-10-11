@@ -44,5 +44,8 @@ vignettes/*.pdf
 .Renviron
 .env
 
+# renv files
+renv/
+
 # Miscellaneous
 .DS_Store
