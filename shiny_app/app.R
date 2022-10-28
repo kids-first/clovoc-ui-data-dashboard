@@ -1,15 +1,3 @@
-source("global.R", local = TRUE)
-source("common.R", local = TRUE)
-
-# Install or load dependencies
-required_packages <- c(
-    "shiny",
-    "shinyWidgets",
-    "DT"
-)
-LoadRequiredPackages(required_packages)
-
-
 # UI component
 ui <- navbarPage(
     "CLOVoc Data Dashboard",
