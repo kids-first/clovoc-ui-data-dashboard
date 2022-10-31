@@ -792,5 +792,7 @@ dataset <- list(
 
 ## Post Dataset
 ```{r post}
-
+board <- pins::board_rsconnect()
+board |>
+  pins::pin_write(dataset, "clovoc-data-cookie", type = "rds")
 ```

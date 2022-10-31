@@ -327,6 +327,37 @@
         "Archs": "dplyr.so.dSYM"
       }
     },
+    "ellipsis": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "ellipsis",
+        "Version": "0.3.2",
+        "Title": "Tools for Working with ...",
+        "Description": "The ellipsis is a powerful tool for extending functions. Unfortunately \n    this power comes at a cost: misspelled arguments will be silently ignored. \n    The ellipsis package provides a collection of functions to catch problems\n    and alert the user.",
+        "Authors@R": "c(\n      person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", role = c(\"aut\", \"cre\")),\n      person(\"RStudio\", role = \"cph\")\n    )",
+        "License": "MIT + file LICENSE",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.1.1",
+        "URL": "https://ellipsis.r-lib.org, https://github.com/r-lib/ellipsis",
+        "BugReports": "https://github.com/r-lib/ellipsis/issues",
+        "Depends": "R (>= 3.2)",
+        "Imports": "rlang (>= 0.3.0)",
+        "Suggests": "covr, testthat",
+        "NeedsCompilation": "yes",
+        "Packaged": "2021-04-29 12:06:44 UTC; lionel",
+        "Author": "Hadley Wickham [aut, cre],\n  RStudio [cph]",
+        "Maintainer": "Hadley Wickham <hadley@rstudio.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2021-04-29 12:40:02 UTC",
+        "Built": "R 4.2.0; x86_64-apple-darwin17.0; 2022-04-25 03:08:12 UTC; unix",
+        "Archs": "ellipsis.so.dSYM"
+      }
+    },
     "evaluate": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -463,6 +494,35 @@
         "Author": "Thomas Peschel [aut],\n  Julia Palm [aut, cre] (<https://orcid.org/0000-0003-1568-5893>),\n  Jens Przybilla [aut],\n  Frank Meineke [aut] (<https://orcid.org/0000-0002-9256-7543>)",
         "Maintainer": "Julia Palm <julia.palm@med.uni-jena.de>",
         "Built": "R 4.2.1; ; 2022-10-06 15:43:21 UTC; unix"
+      }
+    },
+    "filelock": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "filelock",
+        "Title": "Portable File Locking",
+        "Version": "1.0.2",
+        "Author": "Gábor Csárdi",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Description": "Place an exclusive or shared lock on a file. It uses 'LockFile'\n    on Windows and 'fcntl' locks on Unix-like systems.",
+        "License": "MIT + file LICENSE",
+        "LazyData": "true",
+        "URL": "https://github.com/r-lib/filelock#readme",
+        "BugReports": "https://github.com/r-lib/filelock/issues",
+        "RoxygenNote": "6.0.1.9000",
+        "Suggests": "callr (>= 2.0.0), covr, testthat",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2018-10-05 10:03:40 UTC; gaborcsardi",
+        "Repository": "CRAN",
+        "Date/Publication": "2018-10-05 10:30:12 UTC",
+        "Built": "R 4.2.0; x86_64-apple-darwin17.0; 2022-04-25 06:52:02 UTC; unix",
+        "Archs": "filelock.so.dSYM"
       }
     },
     "fs": {
@@ -954,6 +1014,39 @@
         "Built": "R 4.2.0; ; 2022-08-20 12:31:15 UTC; unix"
       }
     },
+    "pins": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Type": "Package",
+        "Package": "pins",
+        "Title": "Pin, Discover and Share Resources",
+        "Version": "1.0.3",
+        "Authors@R": "c(\n    person(\"Julia\", \"Silge\", , \"julia.silge@rstudio.com\", role = c(\"cre\", \"aut\"),\n           comment = c(ORCID = \"0000-0002-3671-836X\")),\n    person(\"Hadley\", \"Wickham\", , \"hadley@rstudio.com\", role = c(\"aut\"),\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Javier\", \"Luraschi\", , \"jluraschi@gmail.com\", role = \"aut\"),\n    person(, \"RStudio\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Publish data sets, models, and other R objects, making it\n    easy to share them across projects and with your colleagues. You can\n    pin objects to a variety of \"boards\", including local folders (to\n    share on a networked drive or with 'DropBox'), 'RStudio' connect,\n    Amazon S3, and more.",
+        "License": "Apache License (>= 2)",
+        "URL": "https://pins.rstudio.com/, https://github.com/rstudio/pins-r",
+        "BugReports": "https://github.com/rstudio/pins-r/issues",
+        "Depends": "R (>= 3.3.0)",
+        "Imports": "cli, digest, ellipsis, filelock, fs, glue, httr, jsonlite,\nlifecycle, magrittr, mime, openssl, rappdirs, rlang (>=\n0.4.10), tibble, whisker, withr (>= 2.4.3), yaml, zip",
+        "Suggests": "arrow, AzureStor, data.table, datasets, gitcreds, knitr,\nMicrosoft365R, mockery, paws.storage, qs, R.utils, rmarkdown,\nrsconnect, shiny, testthat (>= 3.0.0), xml2",
+        "VignetteBuilder": "knitr",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.2.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-09-23 21:27:57 UTC; juliasilge",
+        "Author": "Julia Silge [cre, aut] (<https://orcid.org/0000-0002-3671-836X>),\n  Hadley Wickham [aut] (<https://orcid.org/0000-0003-4757-117X>),\n  Javier Luraschi [aut],\n  RStudio [cph, fnd]",
+        "Maintainer": "Julia Silge <julia.silge@rstudio.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-09-24 06:00:02 UTC",
+        "Built": "R 4.2.0; ; 2022-09-25 11:35:43 UTC; unix"
+      }
+    },
     "pkgconfig": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -1385,6 +1478,33 @@
         "Archs": "vctrs.so.dSYM"
       }
     },
+    "whisker": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "whisker",
+        "Maintainer": "Edwin de Jonge <edwindjonge@gmail.com>",
+        "License": "GPL-3",
+        "Title": "{{mustache}} for R, Logicless Templating",
+        "Type": "Package",
+        "LazyLoad": "yes",
+        "Author": "Edwin de Jonge",
+        "Description": "Implements 'Mustache' logicless templating.",
+        "Version": "0.4",
+        "URL": "http://github.com/edwindj/whisker",
+        "Suggests": "markdown",
+        "RoxygenNote": "6.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2019-08-28 07:26:51 UTC; edwin",
+        "Repository": "CRAN",
+        "Date/Publication": "2019-08-28 08:50:02 UTC",
+        "Built": "R 4.2.0; ; 2022-04-25 03:41:55 UTC; unix"
+      }
+    },
     "withr": {
       "Source": "CRAN",
       "Repository": "https://cloud.r-project.org",
@@ -1512,11 +1632,39 @@
         "Built": "R 4.2.0; x86_64-apple-darwin17.0; 2022-04-25 03:03:41 UTC; unix",
         "Archs": "yaml.so.dSYM"
       }
+    },
+    "zip": {
+      "Source": "CRAN",
+      "Repository": "https://cloud.r-project.org",
+      "GithubRepo": null,
+      "GithubUsername": null,
+      "GithubRef": null,
+      "GithubSha1": null,
+      "description": {
+        "Package": "zip",
+        "Title": "Cross-Platform 'zip' Compression",
+        "Version": "2.2.2",
+        "Author": "Gábor Csárdi, Kuba Podgórski, Rich Geldreich",
+        "Maintainer": "Gábor Csárdi <csardi.gabor@gmail.com>",
+        "Description": "Cross-Platform 'zip' Compression Library. A replacement\n    for the 'zip' function, that does not require any additional\n    external tools on any platform.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://github.com/r-lib/zip#readme",
+        "BugReports": "https://github.com/r-lib/zip/issues",
+        "RoxygenNote": "7.2.1.9000",
+        "Config/testthat/edition": "3",
+        "Suggests": "covr, processx, R6, testthat, withr",
+        "Encoding": "UTF-8",
+        "NeedsCompilation": "yes",
+        "Packaged": "2022-10-25 13:31:24 UTC; gaborcsardi",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-10-26 10:50:02 UTC",
+        "Built": "R 4.2.0; x86_64-apple-darwin17.0; 2022-10-27 11:36:26 UTC; unix"
+      }
     }
   },
   "files": {
     "etl_script_secret.Rmd": {
-      "checksum": "7803591e3c157c7deba98a03fd1b6416"
+      "checksum": "3c606928b8fdaf45ccf972913d85d69d"
     }
   },
   "users": null
