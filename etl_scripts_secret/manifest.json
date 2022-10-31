@@ -4,7 +4,7 @@
   "platform": "4.2.1",
   "metadata": {
     "appmode": "rmd-static",
-    "primary_rmd": "etl_script.Rmd",
+    "primary_rmd": "etl_script_secret.Rmd",
     "primary_html": null,
     "content_category": null,
     "has_parameters": false
@@ -1177,7 +1177,7 @@
     }
   },
   "files": {
-    "etl_script.Rmd": {
+    "etl_script_secret.Rmd": {
       "checksum": "a8524fcda2c0451f6d4c2c1cc402f49c"
     }
   },
