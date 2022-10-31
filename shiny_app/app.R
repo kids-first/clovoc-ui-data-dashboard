@@ -16,6 +16,9 @@ ui <- navbarPage(
 
 # server component
 server <- function(input, output) {
+    board <- pins::board_rsconnect()
+    dataset <- pins::pins_read(board, "clovoc-data-cookie")
+
     output$select <- renderUI({
         selectInput(
             "table",
@@ -26,8 +29,8 @@ server <- function(input, output) {
     })
 
     data_input <- reactive({
-        data <- dataset[[input$table]]
-        return(data)
+      data <- dataset[[input$table]]
+      return(data)
     })
 
     output$download <- downloadHandler(
