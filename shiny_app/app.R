@@ -17,7 +17,7 @@ ui <- navbarPage(
 # server component
 server <- function(input, output) {
     board <- pins::board_rsconnect()
-    dataset <- pins::pins_read(board, "clovoc-data-cookie")
+    dataset <- pins::pin_read(board, "clovoc-data-cookie")
 
     output$select <- renderUI({
         selectInput(
