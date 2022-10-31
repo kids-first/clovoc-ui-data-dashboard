@@ -6,6 +6,7 @@ date: "2022-10-28"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
 ```
 
 ## Create some functions
