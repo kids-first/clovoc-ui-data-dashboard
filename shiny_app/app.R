@@ -42,7 +42,7 @@ ui <- dashboardPage(
 # server component
 server <- function(input, output) {
     board <- pins::board_rsconnect()
-    dataset <- pins::pin_read(board, "clovoc-data-cookie")
+    dataset <- pins::pin_read(board, "nemarichc/clovoc-data-cookie")
 
     patient_data <- reactive({
       data <- dataset[["Patient"]]
