@@ -213,97 +213,97 @@ server <- function(input, output, session) {
   observe({
     updateCheckboxGroupInput(session,
                              "group_identifier",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Group)))
   })
   observe({
     updateSelectInput(session,
                              "race",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Race)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "ethnicity",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Ethnicity)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "gender",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Gender)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "clinical_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Clinical Status`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "verification_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Verification Status`)))
   })
   observe({
     updatePickerInput(session,
                       "condition_code",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["Condition"]]$`Condition Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "body_site_code",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Body Site Count`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "specimen_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Specimen"]]$`Specimen Status`)))
   })
   observe({
     updatePickerInput(session,
                       "specimen_type_code",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["Specimen"]]$`Specimen Type Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "collection_body_code",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Specimen"]]$`Body Site Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "docref_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`DocumentReference Status`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "doc_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Document Status`)))
   })
   observe({
     updatePickerInput(session,
                       "doc_type",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["DocumentReference"]]$`Document Type`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "experiment_strategy",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Experiment Strategy`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "data_category",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Data Category`)))
   })
 
