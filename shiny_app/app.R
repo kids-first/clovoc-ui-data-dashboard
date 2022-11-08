@@ -24,20 +24,20 @@ ui <- dashboardPage(
                               label = NULL)),
                 # checkboxGroupInput("group_identifier",
                 #                    "Group Identifier",
-                #                    choices = ""),
+                #                    choices = NULL),
                 box(title = "Filter by Race:", width = 3,
                     selectInput("race",
                                 label = NULL,
-                                choices = "",
+                                choices = NULL,
                                 multiple = TRUE)),
                 box(title = "Filter by Ethnicity:", width = 3,
                     checkboxGroupInput("ethnicity",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Filter by Gender:", width = 3,
                     checkboxGroupInput("gender",
                                        label = NULL,
-                                       choices = ""))
+                                       choices = NULL))
               ),
               fluidRow(DT::dataTableOutput("patient_table"))),
       tabItem(tabName = "condition_tab",
@@ -46,11 +46,11 @@ ui <- dashboardPage(
                 box(title = "Filter by Clinical Status:", width = 4,
                     checkboxGroupInput("clinical_status",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Filter by Verification Status:", width = 4,
                     checkboxGroupInput("verification_status",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Search a Condition Name:", width = 4,
                     textInput("condition_name",
                               label = NULL))),
@@ -58,7 +58,7 @@ ui <- dashboardPage(
                 box(title = "Filter by Condition Code:", width = 4,
                     pickerInput("condition_code",
                                 label = NULL,
-                                choices = "",
+                                choices = NULL,
                                 multiple = TRUE,
                                 options = c(`actions-box` = TRUE,
                                             `dropup-auto` = TRUE,
@@ -69,7 +69,7 @@ ui <- dashboardPage(
                 box(title = "Filter by Body Site Code:", width = 4,
                     checkboxGroupInput("body_site_code",
                                        label = NULL,
-                                       choices = ""))),
+                                       choices = NULL))),
               fluidRow(DT::dataTableOutput("condition_table"))),
       tabItem(tabName = "specimen_tab",
               fluidRow(h2("Specimen Data Tab")),
@@ -77,14 +77,14 @@ ui <- dashboardPage(
                 box(title = "Filter by Specimen Status:", width = 4,
                     checkboxGroupInput("specimen_status",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Search a Specimen Type Name:", width = 4,
                     textInput("specimen_type_name",
                               label = NULL)),
                 box(title = "Filter by Specimen Type Code:", width = 4,
                     pickerInput("specimen_type_code",
                                 label = NULL,
-                                choices = "",
+                                choices = NULL,
                                 multiple = TRUE,
                                 options = c(`actions-box` = TRUE,
                                             `dropup-auto` = TRUE,
@@ -96,7 +96,7 @@ ui <- dashboardPage(
                 box(title = "Filter by Body Site Code:", width = 4,
                     checkboxGroupInput("collection_body_code",
                                        label = NULL,
-                                       choices = ""))),
+                                       choices = NULL))),
               fluidRow(DT::dataTableOutput("specimen_table"))),
       tabItem(tabName = "docref_tab",
               fluidRow(h2("Document Reference Tab")),
@@ -104,15 +104,15 @@ ui <- dashboardPage(
                 box(title = "Filter by DocumentReference Status:", width = 4,
                     checkboxGroupInput("docref_status",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Filter by Document Status:", width = 4,
                     checkboxGroupInput("doc_status",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Filter by Document Type:", width = 4,
                     pickerInput("doc_type",
                                 label = NULL,
-                                choices = "",
+                                choices = NULL,
                                 multiple = TRUE,
                                 options = c(`actions-box` = TRUE,
                                             `dropup-auto` = TRUE,
@@ -121,11 +121,11 @@ ui <- dashboardPage(
                 box(title = "Filter by Experiment Strategy:", width = 4,
                     checkboxGroupInput("experiment_strategy",
                                        label = NULL,
-                                       choices = "")),
+                                       choices = NULL)),
                 box(title = "Filter by Data Category:", width = 4,
                     checkboxGroupInput("data_category",
                                        label = NULL,
-                                       choices = ""))),
+                                       choices = NULL))),
               fluidRow(DT::dataTableOutput("docref_table")))
     )
   )
@@ -213,97 +213,97 @@ server <- function(input, output, session) {
   observe({
     updateCheckboxGroupInput(session,
                              "group_identifier",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Group)))
   })
   observe({
     updateSelectInput(session,
                              "race",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Race)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "ethnicity",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Ethnicity)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "gender",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Patient"]]$Gender)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "clinical_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Clinical Status`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "verification_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Verification Status`)))
   })
   observe({
     updatePickerInput(session,
                       "condition_code",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["Condition"]]$`Condition Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "body_site_code",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Condition"]]$`Body Site Count`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "specimen_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Specimen"]]$`Specimen Status`)))
   })
   observe({
     updatePickerInput(session,
                       "specimen_type_code",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["Specimen"]]$`Specimen Type Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "collection_body_code",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["Specimen"]]$`Body Site Code`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "docref_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`DocumentReference Status`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "doc_status",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Document Status`)))
   })
   observe({
     updatePickerInput(session,
                       "doc_type",
-                      selected = "",
+                      selected = NULL,
                       choices = sort(unique(dataset[["DocumentReference"]]$`Document Type`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "experiment_strategy",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Experiment Strategy`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "data_category",
-                             selected = "",
+                             selected = NULL,
                              choices = sort(unique(dataset[["DocumentReference"]]$`Data Category`)))
   })
 
