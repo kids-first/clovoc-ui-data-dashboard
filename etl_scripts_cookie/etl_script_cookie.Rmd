@@ -79,7 +79,7 @@ resource_columns <- c("ResearchStudy Identifier" = "meta/tag/code",
                       "Group Identifier" = "identifier/value",
                       "Patient ID" = "member/entity/reference")
 
-# Grap Group resources from FHIR API endpoint
+# Grab Group resources from FHIR API endpoint
 groups <- grab_fhir(resource_name = "Group",
                     desc_cols = resource_columns,
                     url = fhir_api_url,
@@ -115,7 +115,7 @@ resource_columns <- c("Patient ID" = "id",
                       "Race ~ Ethnicity" = "extension/extension/valueString",
                       "Gender" = "gender")
 
-# Grap Patient resources from FHIR API endpoint
+# Grab Patient resources from FHIR API endpoint
 patients <- grab_fhir(resource_name = "Patient",
                       desc_cols = resource_columns,
                       url = fhir_api_url,
@@ -163,12 +163,12 @@ resource_columns <- c("Patient ID" = "subject/reference",
                       "Body Site Ontology URI" = "bodySite/coding/system",
                       "Body Site Code" = "bodySite/coding/code")
 
-# Grap Condition resources from FHIR API endpoint
+# Grab Condition resources from FHIR API endpoint
 conditions <- grab_fhir(resource_name = "Condition",
-                      desc_cols = resource_columns,
-                      url = fhir_api_url,
-                      cookie = cookies,
-                      format = "compact")
+                        desc_cols = resource_columns,
+                        url = fhir_api_url,
+                        cookie = cookies,
+                        format = "compact")
 
 # Remove indices
 conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
@@ -207,12 +207,12 @@ resource_columns <- c("Patient ID" = "subject/reference",
         "Body Site Ontology URI" = "collection/bodySite/coding/system",
         "Body Site Code" = "collection/bodySite/coding/code")
 
-# Grap Specimen resources from FHIR API endpoint
-Specimens <- grab_fhir(resource_name = "Specimen",
-                      desc_cols = resource_columns,
-                      url = fhir_api_url,
-                      cookie = cookies,
-                      format = "compact")
+# Grab Specimen resources from FHIR API endpoint
+specimens <- grab_fhir(resource_name = "Specimen",
+                       desc_cols = resource_columns,
+                       url = fhir_api_url,
+                       cookie = cookies,
+                       format = "compact")
 
 # Remove indices
 specimens <- fhircrackr::fhir_rm_indices(specimens, brackets = c("<<", ">>"))
@@ -247,12 +247,12 @@ resource_columns <- c("Patient ID" = "subject/reference",
                       "Data Category" = "category/coding/display",
                       "URL" = "content/attachment/url")
 
-# Grap Specimen resources from FHIR API endpoint
-Specimens <- grab_fhir(resource_name = "DocumentReference",
-                      desc_cols = resource_columns,
-                      url = fhir_api_url,
-                      cookie = cookies,
-                      format = "compact")
+# Grab DocumentReference resources from FHIR API endpoint
+document_references <- grab_fhir(resource_name = "DocumentReference",
+                                 desc_cols = resource_columns,
+                                 url = fhir_api_url,
+                                 cookie = cookies,
+                                 format = "compact")
 
 # Remove indices
 document_references <- fhircrackr::fhir_rm_indices(
