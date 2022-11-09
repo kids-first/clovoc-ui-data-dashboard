@@ -65,7 +65,7 @@ Pull Kids First data from CLOVoc endpoint:
 
 ```{r kf-auth}
 # Get FHIR credentails
-fhir_api_url <- "https://clovoc-api-fhir-service-dev.kf-strides.org/"
+fhir_api_url <- Sys.getenv("CLOVOC_BASE_URL")
 fhir_api_cookie <- Sys.getenv("CLOVOC_FHIR_API_COOKIE")
 
 # Define headers
@@ -296,7 +296,7 @@ Pull Include data:
 
 ```{r include-auth}
 # Get FHIR credentials
-fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
+fhir_api_url <- Sys.getenv("INCLUDE_BASE_URL")
 fhir_api_cookie <- Sys.getenv("INCLUDE_FHIR_API_COOKIE")
 
 # Define parameters and headers
