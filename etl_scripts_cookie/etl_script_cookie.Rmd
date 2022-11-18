@@ -13,10 +13,6 @@ ParsePatientID <- function(x) {
     return(unlist(strsplit(x, "/"))[2])
 }
 
-ReplaceNA <- function(df) {
-    return(replace(df, is.na(df), ""))
-}
-
 grab_fhir <- function(resource_name, desc_cols, url, cookie, format, tags = NULL) {
   # Create parameters for resource request, with or without tags
   if (!is.null(tags)) {
@@ -57,6 +53,28 @@ grab_fhir <- function(resource_name, desc_cols, url, cookie, format, tags = NULL
   # Return dataset
   data
 }
+
+clean_dataset <- function(data) {
+  # Remove indices
+  data <- fhircrackr::fhir_rm_indices(data, brackets = c("<<", ">>"))
+  
+  # Extract patient IDs
+  data$"Patient ID" <- unlist(lapply(data$"Patient ID", ParsePatientID))
+}
+
+join_patient_data <- function(data, patients) {
+  # Right-join patient_ids and conditions on Patient ID
+  data <- merge(
+    patient_ids,
+    data,
+    by.x = "Patient ID",
+    by.y = "Patient ID",
+    all.y = TRUE
+  )
+
+  # Drop columns
+  data <- within(data, rm("Patient ID"))
+}
 ```
 
 ## Kids First Dataset
@@ -94,17 +112,10 @@ groups <- fhircrackr::fhir_melt(
     all_columns = TRUE
 )
 
-# Remove indices
-groups <- fhircrackr::fhir_rm_indices(groups, brackets = c("<<", ">>"))
-
-# Extract patient IDs
-groups$"Patient ID" <- unlist(lapply(groups$"Patient ID", ParsePatientID))
+groups <- clean_dataset(groups)
 
 # Drop columns
 groups <- within(groups, rm("resource_identifier"))
-
-# Replace NA with empty string
-# groups <- ReplaceNA(groups)
 ```
 
 ```{r kf-patient}
@@ -135,19 +146,11 @@ setnames(
     new = c("Patient ID", "Patient Identifier", "Race", "Ethnicity", "Gender")
 )
 
-# Replace NA with empty string
-# patients <- ReplaceNA(patients)
-
-# Right-join groups and patients on Patient ID
-patients <- merge(
-    groups, patients, by.x = "Patient ID", by.y = "Patient ID", all.y = TRUE
-)
-
 # Cache Patient IDs and Identifiers
 patient_ids <- patients[, c("Patient ID", "Patient Identifier")]
 
-# Drop columns
-patients <- within(patients, rm("Patient ID"))
+# Right-join groups and patients on Patient ID
+patients <- join_patient_data(patients, groups)
 ```
 
 ```{r kf-condition}
@@ -171,27 +174,10 @@ conditions <- grab_fhir(resource_name = "Condition",
                         format = "compact")
 
 # Remove indices
-conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
-
-# Extract patient IDs
-conditions$"Patient ID" <- unlist(
-    lapply(conditions$"Patient ID", ParsePatientID)
-)
+conditions <- clean_dataset(conditions)
 
 # Right-join patient_ids and conditions on Patient ID
-conditions <- merge(
-    patient_ids,
-    conditions,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-conditions <- within(conditions, rm("Patient ID"))
-
-# Replace NA with empty string
-# conditions <- ReplaceNA(conditions)
+conditions <- join_patient_data(patient_ids, conditions)
 ```
 
 ```{r kf-specimen}
@@ -214,26 +200,10 @@ specimens <- grab_fhir(resource_name = "Specimen",
                        cookie = cookies,
                        format = "compact")
 
-# Remove indices
-specimens <- fhircrackr::fhir_rm_indices(specimens, brackets = c("<<", ">>"))
-
-# Replace NA with empty string
-# specimens <- ReplaceNA(specimens)
-
-# Extract patient IDs
-specimens$"Patient ID" <- unlist(lapply(specimens$"Patient ID", ParsePatientID))
+specimens <- clean_dataset(specimens)
 
 # Right-join patient_ids and specimens on Patient ID
-specimens <- merge(
-    patient_ids,
-    specimens,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-specimens <- within(specimens, rm("Patient ID"))
+specimens <- join_patient_data(patient_ids, specimens)
 ```
 
 ```{r kf-document}
@@ -254,30 +224,10 @@ document_references <- grab_fhir(resource_name = "DocumentReference",
                                  cookie = cookies,
                                  format = "compact")
 
-# Remove indices
-document_references <- fhircrackr::fhir_rm_indices(
-    document_references, brackets = c("<<", ">>")
-)
-
-# Replace NA with empty string
-# document_references <- ReplaceNA(document_references)
-
-# Extract patient IDs
-document_references$"Patient ID" <- unlist(
-    lapply(document_references$"Patient ID", ParsePatientID)
-)
+document_references <- clean_dataset(document_references)
 
 # Right-join patient_ids and document_references on Patient ID
-document_references <- merge(
-    patient_ids,
-    document_references,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-document_references <- within(document_references, rm("Patient ID"))
+document_references <- join_patient_data(patient_ids, document_references)
 ```
 
 ```{r kf-cache}
@@ -339,18 +289,11 @@ groups <- fhircrackr::fhir_melt(
     all_columns = TRUE
 )
 
-# Remove indices
-groups <- fhircrackr::fhir_rm_indices(groups, brackets = c("<<", ">>"))
-
-# Replace NA with empty string
-# groups <- ReplaceNA(groups)
+groups <- clean_dataset(groups)
 
 # Filter rows
 group_filter <- "https://kf-api-dataservice.kidsfirstdrc.org/families/"
 groups <- groups[groups$"Group Identifier System" != group_filter, ]
-
-# Extract patient IDs
-groups$"Patient ID" <- unlist(lapply(groups$"Patient ID", ParsePatientID))
 
 # Drop columns
 groups <- within(groups, rm("Group Identifier System", "resource_identifier"))
@@ -365,7 +308,6 @@ setnames(
 # /Patient
 # Description Columns
 resource_columns <- c("Patient ID" = "id",
-                      "Patient Identifier System" = "identifier/system",
                       "Patient Identifier Value" = "identifier/value",
                       "Race ~ Ethnicity" = "extension/extension/valueString",
                       "Gender" = "gender")
@@ -379,10 +321,7 @@ patients <- grab_fhir(resource_name = "Patient",
                       tags = tags)
 
 # Drop columns
-patients <- within(
-    patients,
-    rm("<<1.1>>Patient Identifier System", "<<1.1>>Patient Identifier Value")
-)
+patients <- within(patients, rm("<<1.1>>Patient Identifier Value"))
 
 # Change column names
 setnames(
@@ -397,19 +336,11 @@ setnames(
     new = c("Patient ID", "Patient Identifier", "Race", "Ethnicity", "Gender")
 )
 
-# Replace NA with empty string
-# patients <- ReplaceNA(patients)
-
-# Right-join groups and patients on Patient ID
-patients <- merge(
-    groups, patients, by.x = "Patient ID", by.y = "Patient ID", all.y = TRUE
-)
-
 # Cache Patient IDs and Identifiers
 patient_ids <- patients[, c("Patient ID", "Patient Identifier")]
 
-# Drop columns
-patients <- within(patients, rm("Patient ID"))
+# Right-join groups and patients on Patient ID
+patients <- join_patient_data(patients, groups)
 ```
 
 ```{r include-condition}
@@ -433,28 +364,9 @@ conditions <- grab_fhir(resource_name = "Condition",
                         format = "compact",
                         tags = tags)
 
-# Remove indices
-conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
+conditions <- clean_dataset(conditions)
 
-# Extract patient IDs
-conditions$"Patient ID" <- unlist(
-    lapply(conditions$"Patient ID", ParsePatientID)
-)
-
-# Right-join patient_ids and conditions on Patient ID
-conditions <- merge(
-    patient_ids,
-    conditions,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-conditions <- within(conditions, rm("Patient ID"))
-
-# Replace NA with empty string
-# conditions <- ReplaceNA(conditions)
+conditions <- join_patient_data(patient_ids, conditions)
 ```
 
 ```{r include-specimen}
@@ -500,33 +412,15 @@ setnames(
     )
 )
 
-# Extract patient IDs
-specimens$"Patient ID" <- unlist(
-    lapply(specimens$"Patient ID", ParsePatientID)
-)
+# Drop columns
+specimens <- within(specimens, rm("<<2.1>>Specimen Identifier System",
+                                  "<<2.1>>Specimen Identifier Value",
+                                  "<<3.1>>Specimen Identifier Value"))
+
+specimens <- clean_dataset(specimens)
 
 # Right-join patient_ids and specimens on Patient ID
-specimens <- merge(
-    patient_ids,
-    specimens,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-specimens <- within(
-    specimens,
-    rm(
-        "Patient ID",
-        "<<2.1>>Specimen Identifier System",
-        "<<2.1>>Specimen Identifier Value",
-        "<<3.1>>Specimen Identifier Value"
-    )
-)
-
-# Replace NA with empty string
-# specimens <- ReplaceNA(specimens)
+specimens <- join_patient_data(patient_ids, specimens)
 ```
 
 ```{r include-document}
@@ -570,25 +464,10 @@ setnames(
     )
 )
 
-# Extract patient IDs
-document_references$"Patient ID" <- unlist(
-    lapply(document_references$"Patient ID", ParsePatientID)
-)
+document_references <- clean_dataset(document_references)
 
 # Right-join patient_ids and document_references on Patient ID
-document_references <- merge(
-    patient_ids,
-    document_references,
-    by.x = "Patient ID",
-    by.y = "Patient ID",
-    all.y = TRUE
-)
-
-# Drop columns
-document_references <- within(document_references, rm("Patient ID"))
-
-# Replace NA with empty string
-# document_references <- ReplaceNA(document_references)
+document_references <- join_patient_data(document_references)
 ```
 
 ```{r include-cache}
