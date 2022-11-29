@@ -1,10 +1,13 @@
+# Load packages=================================================================
 library(shiny)
 library(shinyWidgets)
 library(shinydashboard)
 
-# UI component
+# UI component==================================================================
 ui <- dashboardPage(
+  ## Dashboard Header===========================================================
   dashboardHeader(title = span(tagList(icon("fire"), "CLOVoc Data Dashboard"))),
+  ## Dashboard Sidebar==========================================================
   dashboardSidebar(
     sidebarMenu(
       menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
@@ -14,8 +17,10 @@ ui <- dashboardPage(
                icon = icon("file-medical"))
     )
   ),
+  ## Dashboard Body=============================================================
   dashboardBody(
     tabItems(
+      ### Patient tab======
       tabItem(tabName = "patient_tab",
               fluidRow(h2("Patient Data")),
               fluidRow(
@@ -56,6 +61,7 @@ ui <- dashboardPage(
                                          choices = NULL)))
               ),
               fluidRow(DT::dataTableOutput("patient_table"))),
+      ### Condition tab======
       tabItem(tabName = "condition_tab",
               fluidRow(h2("Condition Data Tab")),
               fluidRow(
@@ -128,6 +134,7 @@ ui <- dashboardPage(
                                          `window-padding` = "[40,0,40,0]")))
                 )),
               fluidRow(DT::dataTableOutput("condition_table"))),
+      ### Specimen tab======
       tabItem(tabName = "specimen_tab",
               fluidRow(h2("Specimen Data Tab")),
               fluidRow(
@@ -198,6 +205,7 @@ ui <- dashboardPage(
                                          `window-padding` = "[40,0,40,0]"))))
               ),
               fluidRow(DT::dataTableOutput("specimen_table"))),
+      ### Document Reference tab======
       tabItem(tabName = "docref_tab",
               fluidRow(h2("Document Reference Tab")),
               fluidRow(
@@ -254,11 +262,14 @@ ui <- dashboardPage(
   )
 )
 
-# server component
+# Server component==============================================================
 server <- function(input, output, session) {
+  ## Retrieve pinned data=======================================================
   board <- pins::board_rsconnect()
   dataset <- pins::pin_read(board, "nemarichc/clovoc-data-cookie")
 
+  ## Separate and filter datasets===============================================
+  ### Filter patient dataset====================================================
   patient_data <- reactive({
     data <- dataset[["Patient"]]
     if (!is.null(input$research_study_identifier)) {
@@ -286,6 +297,7 @@ server <- function(input, output, session) {
     return(data)
   })
 
+  ### Filter condition dataset==================================================
   condition_data <- reactive({
     data <- dataset[["Condition"]]
     if (!is.null(input$condition_patient_id)) {
@@ -318,6 +330,7 @@ server <- function(input, output, session) {
     return(data)
   })
 
+  ### Filter specimen dataset===================================================
   specimen_data <- reactive({
     data <- dataset[["Specimen"]]
     if (!is.null(input$specimen_patient_id)) {
@@ -349,6 +362,7 @@ server <- function(input, output, session) {
     return(data)
   })
 
+  ### Filter document reference dataset=========================================
   docref_data <- reactive({
     data <- dataset[["DocumentReference"]]
     if (!is.null(input$docref_patient_id)) {
@@ -375,7 +389,7 @@ server <- function(input, output, session) {
     return(data)
   })
 
-  ## Create Filters
+  ## Populate filter options====================================================
   observe({
     updateSelectInput(session,
                       "research_study_identifier",
@@ -563,6 +577,8 @@ server <- function(input, output, session) {
                              choices = sort(unique(dataset[["DocumentReference"]]$`URL`)))
   })
 
+  ## Output datasets to UI======================================================
+  ### Output patient dataset====================================================
   output$patient_table <- DT::renderDataTable({
     patient_data()
   },
@@ -576,6 +592,7 @@ server <- function(input, output, session) {
     )))
   )
 
+  ### Output condition dataset==================================================
   output$condition_table <- DT::renderDataTable({
     condition_data()
   },
@@ -589,6 +606,7 @@ server <- function(input, output, session) {
     )))
   )
 
+  ### Output specimen dataset===================================================
   output$specimen_table <- DT::renderDataTable({
     specimen_data()
   },
@@ -602,6 +620,7 @@ server <- function(input, output, session) {
     )))
   )
 
+  ### Output document reference dataset=========================================
   output$docref_table <- DT::renderDataTable({
     docref_data()
   },
@@ -616,5 +635,5 @@ server <- function(input, output, session) {
   )
 }
 
-# Bind UI and server to an application
+# Bind UI and server to an application==========================================
 shinyApp(ui = ui, server = server)
