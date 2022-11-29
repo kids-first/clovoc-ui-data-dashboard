@@ -563,15 +563,6 @@ server <- function(input, output, session) {
                              choices = sort(unique(dataset[["DocumentReference"]]$`URL`)))
   })
 
-  output$download <- downloadHandler(
-    file_name <- function() {
-      paste(input$table, "tsv", sep = ".")
-    },
-    content <- function(file) {
-      write.table(data_input(), file, sep = "\t", row.names = FALSE)
-    }
-  )
-
   output$patient_table <- DT::renderDataTable({
     patient_data()
   },
