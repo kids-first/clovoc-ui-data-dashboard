@@ -10,6 +10,7 @@ ui <- dashboardPage(
   ## Dashboard Sidebar==========================================================
   dashboardSidebar(
     sidebarMenu(
+      menuItem("Combined Data", tabName = "combined_tab"), #TODO Add icon
       menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
       menuItem("Conditions", tabName = "condition_tab", icon = icon("tags")),
       menuItem("Specimens", tabName = "specimen_tab", icon = icon("vial")),
@@ -20,9 +21,15 @@ ui <- dashboardPage(
   ## Dashboard Body=============================================================
   dashboardBody(
     tabItems(
+      ### Combined Data tab====
+      tabItem(tabName = "combined_tab",
+              fluidRow(h2("Combined Data")),
+              fluidRow(DT::dataTableOutput("combined_table"))),
       ### Patient tab======
       tabItem(tabName = "patient_tab",
+              #### Patient tab title----
               fluidRow(h2("Patient Data")),
+              #### Patient tab filters
               fluidRow(
                 fluidRow(
                   box(title = "Search a Research Study Identifier:",
@@ -269,6 +276,17 @@ server <- function(input, output, session) {
   dataset <- pins::pin_read(board, "nemarichc/clovoc-data-cookie")
 
   ## Separate and filter datasets===============================================
+  ### Create combined dataset===================================================
+  combined_data <- reactive({
+    data <- dataset[["Patient"]] |>
+      dplyr::left_join(dataset[["Condition"]],
+                       by = "Patient Identifier") |>
+      dplyr::left_join(dataset[["Specimen"]],
+                       by = "Patient Identifier") |>
+      dplyr::left_join(dataset[["DocumentReference"]],
+                       by = "Patient Identifier")
+    return(data)
+  })
   ### Filter patient dataset====================================================
   patient_data <- reactive({
     data <- dataset[["Patient"]]
@@ -578,6 +596,21 @@ server <- function(input, output, session) {
   })
 
   ## Output datasets to UI======================================================
+  ### Output combined dataset===================================================
+  output$combined_table <- DT::renderDataTable({
+    combined_data()
+  },
+  extensions = list("Buttons" = NULL),
+  options = list(
+    pageLength = 25,
+    dom = "Bfrtip",
+    buttons = list("copy", "print", list(extend = "collection",
+                                         buttons = c("csv", "excel", "pdf"),
+                                         text = "Download")),
+    scrollX = TRUE,
+    scrollY = 500)
+  )
+
   ### Output patient dataset====================================================
   output$patient_table <- DT::renderDataTable({
     patient_data()
