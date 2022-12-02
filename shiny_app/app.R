@@ -10,6 +10,7 @@ ui <- dashboardPage(
   ## Dashboard Sidebar==========================================================
   dashboardSidebar(
     sidebarMenu(
+      menuItem("Combined Data", tabName = "combined_tab"), #TODO Add icon
       menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
       menuItem("Conditions", tabName = "condition_tab", icon = icon("tags")),
       menuItem("Specimens", tabName = "specimen_tab", icon = icon("vial")),
@@ -20,9 +21,15 @@ ui <- dashboardPage(
   ## Dashboard Body=============================================================
   dashboardBody(
     tabItems(
+      ### Combined Data tab====
+      tabItem(tabName = "combined_tab",
+              fluidRow(h2("Combined Data")),
+              fluidRow(DT::dataTableOutput("combined_table"))),
       ### Patient tab======
       tabItem(tabName = "patient_tab",
+              #### Patient tab title----
               fluidRow(h2("Patient Data")),
+              #### Patient tab filters
               fluidRow(
                 fluidRow(
                   box(title = "Search a Research Study Identifier:",
@@ -269,6 +276,17 @@ server <- function(input, output, session) {
   dataset <- pins::pin_read(board, "nemarichc/clovoc-data-cookie")
 
   ## Separate and filter datasets===============================================
+  ### Create combined dataset===================================================
+  combined_data <- reactive({
+    data <- dataset[["Patient"]] |>
+      dplyr::left_join(dataset[["Condition"]],
+                       by = "Patient Identifier") |>
+      dplyr::left_join(dataset[["Specimen"]],
+                       by = "Patient Identifier") |>
+      dplyr::left_join(dataset[["DocumentReference"]],
+                       by = "Patient Identifier")
+    return(data)
+  })
   ### Filter patient dataset====================================================
   patient_data <- reactive({
     data <- dataset[["Patient"]]
@@ -322,7 +340,8 @@ server <- function(input, output, session) {
       data <- data[data$`Body Site Name` %in% input$condition_body_site_name, ]
     }
     if (!is.null(input$condition_body_site_uri)) {
-      data <- data[data$`Body Site Ontology URI` %in% input$condition_body_site_uri, ]
+      data <- data[data$`Body Site Ontology URI` %in%
+                     input$condition_body_site_uri, ]
     }
     if (!is.null(input$condition_body_site_code)) {
       data <- data[data$`Body Site Code` %in% input$condition_body_site_code, ]
@@ -394,19 +413,22 @@ server <- function(input, output, session) {
     updateSelectInput(session,
                       "research_study_identifier",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Patient"]]$`ResearchStudy Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Patient"]]$`ResearchStudy Identifier`)))
   })
   observe({
     updateSelectInput(session,
                       "group_identifier",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Patient"]]$`Group Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Patient"]]$`Group Identifier`)))
   })
   observe({
     updateSelectInput(session,
                       "patient_id",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Patient"]]$`Patient Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Patient"]]$`Patient Identifier`)))
   })
   observe({
     updateSelectInput(session,
@@ -418,166 +440,210 @@ server <- function(input, output, session) {
     updateCheckboxGroupInput(session,
                              "ethnicity",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Patient"]]$Ethnicity)))
+                             choices = sort(unique(
+                               dataset[["Patient"]]$Ethnicity)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "gender",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Patient"]]$Gender)))
+                             choices = sort(unique(
+                               dataset[["Patient"]]$Gender)))
   })
   observe({
     updateSelectInput(session,
                       "condition_patient_id",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Patient Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Patient Identifier`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "clinical_status",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Condition"]]$`Clinical Status`)))
+                             choices = sort(unique(
+                               dataset[["Condition"]]$`Clinical Status`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "verification_status",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Condition"]]$`Verification Status`)))
+                             choices = sort(unique(
+                               dataset[["Condition"]]$`Verification Status`)))
   })
   observe({
     updateSelectInput(session,
                       "condition_name",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Condition Name`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Condition Name`)))
   })
   observe({
     updateSelectInput(session,
                       "condition_uri",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Condition Ontology URI`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Condition Ontology URI`)))
   })
   observe({
     updatePickerInput(session,
                       "condition_code",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Condition Code`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Condition Code`)))
   })
   observe({
     updateSelectInput(session,
                       "condition_body_site_name",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Body Site Name`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Body Site Name`)))
   })
   observe({
     updateSelectInput(session,
                       "condition_body_site_uri",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Body Site Ontology URI`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Body Site Ontology URI`)))
   })
   observe({
     updatePickerInput(session,
                       "condition_body_site_code",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Condition"]]$`Body Site Code`)))
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Body Site Code`)))
   })
   observe({
     updateSelectInput(session,
                       "specimen_patient_id",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Patient Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Patient Identifier`)))
   })
   observe({
     updateSelectInput(session,
                       "collection_body_type",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Body Site Name`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Body Site Name`)))
   })
   observe({
     updateSelectInput(session,
                       "specimen_body_site_uri",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Body Site Ontology URI`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Body Site Ontology URI`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "collection_body_code",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Specimen"]]$`Body Site Code`)))
+                             choices = sort(unique(
+                               dataset[["Specimen"]]$`Body Site Code`)))
   })
   observe({
     updatePickerInput(session,
                       "specimen_identifier",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Specimen Identifier`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Specimen Identifier`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "specimen_status",
                              selected = NULL,
-                             choices = sort(unique(dataset[["Specimen"]]$`Specimen Status`)))
+                             choices = sort(unique(
+                               dataset[["Specimen"]]$`Specimen Status`)))
   })
   observe({
     updateSelectInput(session,
                       "specimen_type_name",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Specimen Type Name`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Specimen Type Name`)))
   })
   observe({
     updateSelectInput(session,
                       "specimen_type_uri",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Specimen Type Ontology URI`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Specimen Type Ontology URI`)))
   })
   observe({
     updatePickerInput(session,
                       "specimen_type_code",
                       selected = NULL,
-                      choices = sort(unique(dataset[["Specimen"]]$`Specimen Type Code`)))
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Specimen Type Code`)))
   })
   observe({
     updateSelectInput(session,
-                             "docref_patient_id",
-                             selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`Patient Identifier`)))
+                      "docref_patient_id",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["DocumentReference"]]$`Patient Identifier`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "docref_status",
-                             selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`DocumentReference Status`)))
+    updateCheckboxGroupInput(
+      session,
+      "docref_status",
+      selected = NULL,
+      choices = sort(unique(
+        dataset[["DocumentReference"]]$`DocumentReference Status`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "doc_status",
-                             selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`Document Status`)))
+    updateCheckboxGroupInput(
+      session,
+      "doc_status",
+      selected = NULL,
+      choices = sort(unique(dataset[["DocumentReference"]]$`Document Status`)))
   })
   observe({
     updatePickerInput(session,
                       "doc_type",
                       selected = NULL,
-                      choices = sort(unique(dataset[["DocumentReference"]]$`Document Type`)))
+                      choices = sort(unique(
+                        dataset[["DocumentReference"]]$`Document Type`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "experiment_strategy",
-                             selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`Experiment Strategy`)))
+    updateCheckboxGroupInput(
+      session,
+      "experiment_strategy",
+      selected = NULL,
+      choices = sort(unique(
+        dataset[["DocumentReference"]]$`Experiment Strategy`)))
   })
   observe({
     updateCheckboxGroupInput(session,
                              "data_category",
                              selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`Data Category`)))
+                             choices = sort(unique(
+                               dataset[["DocumentReference"]]$`Data Category`)))
   })
   observe({
     updateSelectInput(session,
                              "docref_uri",
                              selected = NULL,
-                             choices = sort(unique(dataset[["DocumentReference"]]$`URL`)))
+                             choices = sort(unique(
+                               dataset[["DocumentReference"]]$`URL`)))
   })
 
   ## Output datasets to UI======================================================
+  ### Output combined dataset===================================================
+  output$combined_table <- DT::renderDataTable({
+    combined_data()
+  },
+  extensions = list("Buttons" = NULL),
+  options = list(
+    pageLength = 25,
+    dom = "Bfrtip",
+    buttons = list("copy", "print", list(extend = "collection",
+                                         buttons = c("csv", "excel", "pdf"),
+                                         text = "Download")),
+    scrollX = TRUE,
+    scrollY = 500)
+  )
+
   ### Output patient dataset====================================================
   output$patient_table <- DT::renderDataTable({
     patient_data()
