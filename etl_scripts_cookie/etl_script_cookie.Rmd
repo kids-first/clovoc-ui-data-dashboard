@@ -1,23 +1,61 @@
 ---
 title: "CLOVoc Intermediate ETL Pipeline"
 output: html_document
-date: "2022-10-28"
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(dplyr)
-```
 
-## Create some functions
-```{r funs}
 ParsePatientID <- function(x) {
     return(unlist(strsplit(x, "/"))[2])
 }
 
 ReplaceNA <- function(df) {
     return(replace(df, is.na(df), ""))
+}
+
+grab_fhir <- function(resource_name, desc_cols, url, cookie, format, tags = NULL) {
+  # Create parameters for resource request, with or without tags
+  if (!is.null(tags)) {
+    parameters <- c("_count" = "100", "_tags" = tags)
+  } else {
+    parameters <- c("_count" = "100")
+  }
+  
+  # Build a request URL for resource
+  resource_request <- fhircrackr::fhir_url(
+    url = fhir_api_url,
+    resource = resource_name,
+    parameters = parameters
+  )
+  
+  # Download bundles of resources
+  resource_bundles <- fhircrackr::fhir_search(
+    request = resource_request,
+    add_headers = cookie,
+    verbose = 2
+  )
+  
+  # Define a resource table description
+  resource_description <- fhircrackr::fhir_table_description(
+    resource = resource_name,
+    cols = desc_cols,
+    sep = " ~ ",
+    brackets = c("<<", ">>"),
+    rm_empty_cols = FALSE,
+    format = format
+  )
+  
+  # Flatten resources
+  data <- fhircrackr::fhir_crack(
+    bundles = resource_bundles, design = resource_description, verbose = 2
+  )
+  
+  # Return dataset
+  data
 }
 ```
 
@@ -27,7 +65,7 @@ Pull Kids First data from CLOVoc endpoint:
 
 ```{r kf-auth}
 # Get FHIR credentails
-fhir_api_url <- "https://clovoc-api-fhir-service-dev.kf-strides.org/"
+fhir_api_url <- Sys.getenv("CLOVOC_BASE_URL")
 fhir_api_cookie <- Sys.getenv("CLOVOC_FHIR_API_COOKIE")
 
 # Define headers
@@ -36,36 +74,17 @@ cookies <- c(Cookie = fhir_api_cookie)
 
 ```{r kf-group}
 # /Group
-# Build a request URL for Group
-group_request <- fhircrackr::fhir_url(
-    url = fhir_api_url, resource = "Group", parameters = c("_count" = "100")
-)
+# Description Columns
+resource_columns <- c("ResearchStudy Identifier" = "meta/tag/code",
+                      "Group Identifier" = "identifier/value",
+                      "Patient ID" = "member/entity/reference")
 
-# Download bundles of Group resources
-group_bundles <- fhircrackr::fhir_search(
-    request = group_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Group table description
-group_description <- fhircrackr::fhir_table_description(
-    resource = "Group",
-    cols = c(
-        "ResearchStudy Identifier" = "meta/tag/code",
-        "Group Identifier" = "identifier/value",
-        "Patient ID" = "member/entity/reference"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
-
-# Flatten Group resources
-groups <- fhircrackr::fhir_crack(
-    bundles = group_bundles, design = group_description, verbose = 2
-)
+# Grab Group resources from FHIR API endpoint
+groups <- grab_fhir(resource_name = "Group",
+                    desc_cols = resource_columns,
+                    url = fhir_api_url,
+                    cookie = cookies,
+                    format = "compact")
 
 # Melt columns
 groups <- fhircrackr::fhir_melt(
@@ -85,42 +104,23 @@ groups$"Patient ID" <- unlist(lapply(groups$"Patient ID", ParsePatientID))
 groups <- within(groups, rm("resource_identifier"))
 
 # Replace NA with empty string
-groups <- ReplaceNA(groups)
+# groups <- ReplaceNA(groups)
 ```
 
 ```{r kf-patient}
 # /Patient
-# Build a request URL for Patient
-patient_request <- fhircrackr::fhir_url(
-    url = fhir_api_url, resource = "Patient", parameters = c("_count" = "100")
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "id",
+                      "Patient Identifier" = "identifier/value",
+                      "Race ~ Ethnicity" = "extension/extension/valueString",
+                      "Gender" = "gender")
 
-# Download bundles of Patient resources
-patient_bundles <- fhircrackr::fhir_search(
-    request = patient_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Patient table description
-patient_description <- fhircrackr::fhir_table_description(
-    resource = "Patient",
-    cols = c(
-        "Patient ID" = "id",
-        "Patient Identifier" = "identifier/value",
-        "Race ~ Ethnicity" = "extension/extension/valueString",
-        "Gender" = "gender"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "wide"
-)
-
-# Flatten Patient resources
-patients <- fhircrackr::fhir_crack(
-    bundles = patient_bundles, design = patient_description, verbose = 2
-)
+# Grab Patient resources from FHIR API endpoint
+patients <- grab_fhir(resource_name = "Patient",
+                      desc_cols = resource_columns,
+                      url = fhir_api_url,
+                      cookie = cookies,
+                      format = "wide")
 
 # Change column names
 setnames(
@@ -136,7 +136,7 @@ setnames(
 )
 
 # Replace NA with empty string
-patients <- ReplaceNA(patients)
+# patients <- ReplaceNA(patients)
 
 # Right-join groups and patients on Patient ID
 patients <- merge(
@@ -152,44 +152,23 @@ patients <- within(patients, rm("Patient ID"))
 
 ```{r kf-condition}
 # /Condition
-# Build a request URL for Condition
-condition_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "Condition",
-    parameters = c("_count" = "100")
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
+                      "Clinical Status" = "clinicalStatus/text",
+                      "Verification Status" = "verificationStatus/text",
+                      "Condition Name" = "code/text",
+                      "Condition Ontology URI" = "code/coding/system",
+                      "Condition Code" = "code/coding/code",
+                      "Body Site Name" = "bodySite/text",
+                      "Body Site Ontology URI" = "bodySite/coding/system",
+                      "Body Site Code" = "bodySite/coding/code")
 
-# Download bundles of Condition resources
-condition_bundles <- fhircrackr::fhir_search(
-    request = condition_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Condition table description
-condition_description <- fhircrackr::fhir_table_description(
-    resource = "Condition",
-    cols = c(
-        "Patient ID" = "subject/reference",
-        "Clinical Status" = "clinicalStatus/text",
-        "Verification Status" = "verificationStatus/text",
-        "Condition Name" = "code/text",
-        "Condition Ontology URI" = "code/coding/system",
-        "Condition Code" = "code/coding/code",
-        "Body Site Name" = "bodySite/text",
-        "Body Site Ontology URI" = "bodySite/coding/system",
-        "Body Site Code" = "bodySite/coding/code"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
-
-# Flatten Condition resources
-conditions <- fhircrackr::fhir_crack(
-    bundles = condition_bundles, design = condition_description, verbose = 2
-)
+# Grab Condition resources from FHIR API endpoint
+conditions <- grab_fhir(resource_name = "Condition",
+                        desc_cols = resource_columns,
+                        url = fhir_api_url,
+                        cookie = cookies,
+                        format = "compact")
 
 # Remove indices
 conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
@@ -212,28 +191,13 @@ conditions <- merge(
 conditions <- within(conditions, rm("Patient ID"))
 
 # Replace NA with empty string
-conditions <- ReplaceNA(conditions)
+# conditions <- ReplaceNA(conditions)
 ```
 
 ```{r kf-specimen}
 # /Specimen
-# Build a request URL for Specimen
-specimen_request <- fhircrackr::fhir_url(
-    url = fhir_api_url, resource = "Specimen", parameters = c("_count" = "100")
-)
-
-# Download bundles of Specimen resources
-specimen_bundles <- fhircrackr::fhir_search(
-    request = specimen_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a table description
-specimen_description <- fhircrackr::fhir_table_description(
-    resource = "Specimen",
-    cols = c(
-        "Patient ID" = "subject/reference",
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
         "Specimen Identifier" = "identifier/value",
         "Specimen Status" = "status",
         "Specimen Type Name" = "type/text",
@@ -241,29 +205,23 @@ specimen_description <- fhircrackr::fhir_table_description(
         "Specimen Type Code" = "type/coding/code",
         "Body Site Name" = "collection/bodySite/text",
         "Body Site Ontology URI" = "collection/bodySite/coding/system",
-        "Body Site Code" = "collection/bodySite/coding/code"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
+        "Body Site Code" = "collection/bodySite/coding/code")
 
-# Flatten Specimen resources
-specimens <- fhircrackr::fhir_crack(
-    bundles = specimen_bundles, design = specimen_description, verbose = 2
-)
+# Grab Specimen resources from FHIR API endpoint
+specimens <- grab_fhir(resource_name = "Specimen",
+                       desc_cols = resource_columns,
+                       url = fhir_api_url,
+                       cookie = cookies,
+                       format = "compact")
 
 # Remove indices
 specimens <- fhircrackr::fhir_rm_indices(specimens, brackets = c("<<", ">>"))
 
 # Replace NA with empty string
-specimens <- ReplaceNA(specimens)
+# specimens <- ReplaceNA(specimens)
 
 # Extract patient IDs
-specimens$"Patient ID" <- unlist(
-    lapply(specimens$"Patient ID", ParsePatientID)
-)
+specimens$"Patient ID" <- unlist(lapply(specimens$"Patient ID", ParsePatientID))
 
 # Right-join patient_ids and specimens on Patient ID
 specimens <- merge(
@@ -280,44 +238,21 @@ specimens <- within(specimens, rm("Patient ID"))
 
 ```{r kf-document}
 # /DocumentReference
-# Build a request URL for DocumentReference
-document_reference_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "DocumentReference",
-    parameters = c("_count" = "100")
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
+                      "DocumentReference Status" = "status",
+                      "Document Status" = "docStatus",
+                      "Document Type" = "type/text",
+                      "Experiment Strategy " = "_experiment_strategy",
+                      "Data Category" = "category/coding/display",
+                      "URL" = "content/attachment/url")
 
-# Download bundles of DocumentReference resources
-document_reference_bundles <- fhircrackr::fhir_search(
-    request = document_reference_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a table description
-document_reference_description <- fhircrackr::fhir_table_description(
-    resource = "DocumentReference",
-    cols = c(
-        "Patient ID" = "subject/reference",
-        "DocumentReference Status" = "status",
-        "Document Status" = "docStatus",
-        "Document Type" = "type/text",
-        "Experiment Strategy " = "_experiment_strategy",
-        "Data Category" = "category/coding/display",
-        "URL" = "content/attachment/url"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
-
-# Flatten DocumentReference resources
-document_references <- fhircrackr::fhir_crack(
-    bundles = document_reference_bundles,
-    design = document_reference_description,
-    verbose = 2
-)
+# Grab DocumentReference resources from FHIR API endpoint
+document_references <- grab_fhir(resource_name = "DocumentReference",
+                                 desc_cols = resource_columns,
+                                 url = fhir_api_url,
+                                 cookie = cookies,
+                                 format = "compact")
 
 # Remove indices
 document_references <- fhircrackr::fhir_rm_indices(
@@ -325,7 +260,7 @@ document_references <- fhircrackr::fhir_rm_indices(
 )
 
 # Replace NA with empty string
-document_references <- ReplaceNA(document_references)
+# document_references <- ReplaceNA(document_references)
 
 # Extract patient IDs
 document_references$"Patient ID" <- unlist(
@@ -361,7 +296,7 @@ Pull Include data:
 
 ```{r include-auth}
 # Get FHIR credentials
-fhir_api_url <- "https://include-api-fhir-service.includedcc.org/"
+fhir_api_url <- Sys.getenv("INCLUDE_BASE_URL")
 fhir_api_cookie <- Sys.getenv("INCLUDE_FHIR_API_COOKIE")
 
 # Define parameters and headers
@@ -372,39 +307,19 @@ cookies <- c(Cookie = fhir_api_cookie)
 
 ```{r include-group}
 # /Group
-# Build a request URL for Group
-group_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "Group",
-    parameters = c("_count" = 100, "_tag" = tags)
-)
+# Description Columns
+resource_columns <- c("ResearchStudy Identifier" = "meta/tag/code",
+                      "Group Identifier System" = "identifier/system",
+                      "Group Identifier Value" = "identifier/value",
+                      "Patient ID" = "member/entity/reference")
 
-# Download bundles of Group resources
-group_bundles <- fhircrackr::fhir_search(
-    request = group_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Group table description
-group_description <- fhircrackr::fhir_table_description(
-    resource = "Group",
-    cols = c(
-        "ResearchStudy Identifier" = "meta/tag/code",
-        "Group Identifier System" = "identifier/system",
-        "Group Identifier Value" = "identifier/value",
-        "Patient ID" = "member/entity/reference"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
-
-# Flatten Group resources
-groups <- fhircrackr::fhir_crack(
-    bundles = group_bundles, design = group_description, verbose = 2
-)
+# Grab Group resources from FHIR API endpoint
+groups <- grab_fhir(resource_name = "Group",
+                    desc_cols = resource_columns,
+                    url = fhir_api_url,
+                    cookie = cookies,
+                    format = "compact",
+                    tags = tags)
 
 # Melt columns
 groups <- fhircrackr::fhir_melt(
@@ -428,7 +343,7 @@ groups <- fhircrackr::fhir_melt(
 groups <- fhircrackr::fhir_rm_indices(groups, brackets = c("<<", ">>"))
 
 # Replace NA with empty string
-groups <- ReplaceNA(groups)
+# groups <- ReplaceNA(groups)
 
 # Filter rows
 group_filter <- "https://kf-api-dataservice.kidsfirstdrc.org/families/"
@@ -448,40 +363,20 @@ setnames(
 
 ```{r include-patient}
 # /Patient
-# Build a request URL for Patient
-patient_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "Patient",
-    parameters = c("_count" = 100, "_tag" = tags)
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "id",
+                      "Patient Identifier System" = "identifier/system",
+                      "Patient Identifier Value" = "identifier/value",
+                      "Race ~ Ethnicity" = "extension/extension/valueString",
+                      "Gender" = "gender")
 
-# Download bundles of Patient resources
-patient_bundles <- fhircrackr::fhir_search(
-    request = patient_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Patient table description
-patient_description <- fhircrackr::fhir_table_description(
-    resource = "Patient",
-    cols = c(
-        "Patient ID" = "id",
-        "Patient Identifier System" = "identifier/system",
-        "Patient Identifier Value" = "identifier/value",
-        "Race ~ Ethnicity" = "extension/extension/valueString",
-        "Gender" = "gender"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "wide"
-)
-
-# Flatten Patient resources
-patients <- fhircrackr::fhir_crack(
-    bundles = patient_bundles, design = patient_description, verbose = 2
-)
+# Grab Patient resources from FHIR API endpoint
+patients <- grab_fhir(resource_name = "Patient",
+                      desc_cols = resource_columns,
+                      url = fhir_api_url,
+                      cookie = cookies,
+                      format = "wide",
+                      tags = tags)
 
 # Drop columns
 patients <- within(
@@ -503,7 +398,7 @@ setnames(
 )
 
 # Replace NA with empty string
-patients <- ReplaceNA(patients)
+# patients <- ReplaceNA(patients)
 
 # Right-join groups and patients on Patient ID
 patients <- merge(
@@ -519,25 +414,8 @@ patients <- within(patients, rm("Patient ID"))
 
 ```{r include-condition}
 # /Condition
-# Build a request URL for Condition
-condition_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "Condition",
-    parameters = c("_count" = 100, "_tag" = tags)
-)
-
-# Download bundles of Condition resources
-condition_bundles <- fhircrackr::fhir_search(
-    request = condition_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a Condition table description
-condition_description <- fhircrackr::fhir_table_description(
-    resource = "Condition",
-    cols = c(
-        "Patient ID" = "subject/reference",
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
         "Clinical Status" = "clinicalStatus/text",
         "Verification Status" = "verificationStatus/text",
         "Condition Name" = "code/text",
@@ -545,18 +423,15 @@ condition_description <- fhircrackr::fhir_table_description(
         "Condition Code" = "code/coding/code",
         "Body Site Name" = "bodySite/text",
         "Body Site Ontology URI" = "bodySite/coding/system",
-        "Body Site Code" = "bodySite/coding/code"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "compact"
-)
+        "Body Site Code" = "bodySite/coding/code")
 
-# Flatten Condition resources
-conditions <- fhircrackr::fhir_crack(
-    bundles = condition_bundles, design = condition_description, verbose = 2
-)
+# Grab Condition resources from FHIR API endpoint
+conditions <- grab_fhir(resource_name = "Condition",
+                        desc_cols = resource_columns,
+                        url = fhir_api_url,
+                        cookie = cookies,
+                        format = "compact",
+                        tags = tags)
 
 # Remove indices
 conditions <- fhircrackr::fhir_rm_indices(conditions, brackets = c("<<", ">>"))
@@ -579,50 +454,30 @@ conditions <- merge(
 conditions <- within(conditions, rm("Patient ID"))
 
 # Replace NA with empty string
-conditions <- ReplaceNA(conditions)
+# conditions <- ReplaceNA(conditions)
 ```
 
 ```{r include-specimen}
 # /Specimen
-# Build a request URL for Specimen
-specimen_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "Specimen",
-    parameters = c("_count" = 100, "_tag" = tags)
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
+                      "Specimen Identifier System" = "identifier/system",
+                      "Specimen Identifier Value" = "identifier/value",
+                      "Specimen Status" = "status",
+                      "Specimen Type Name" = "type/text",
+                      "Specimen Type Ontology URI" = "type/coding/system",
+                      "Specimen Type Code" = "type/coding/code",
+                      "Body Site Name" = "collection/bodySite/text",
+                      "Body Site Ontology URI" = "collection/bodySite/coding/system",
+                      "Body Site Code" = "collection/bodySite/coding/code")
 
-# Download bundles of Specimen resources
-specimen_bundles <- fhircrackr::fhir_search(
-    request = specimen_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a table description
-specimen_description <- fhircrackr::fhir_table_description(
-    resource = "Specimen",
-    cols = c(
-        "Patient ID" = "subject/reference",
-        "Specimen Identifier System" = "identifier/system",
-        "Specimen Identifier Value" = "identifier/value",
-        "Specimen Status" = "status",
-        "Specimen Type Name" = "type/text",
-        "Specimen Type Ontology URI" = "type/coding/system",
-        "Specimen Type Code" = "type/coding/code",
-        "Body Site Name" = "collection/bodySite/text",
-        "Body Site Ontology URI" = "collection/bodySite/coding/system",
-        "Body Site Code" = "collection/bodySite/coding/code"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "wide"
-)
-
-# Flatten Specimen resources
-specimens <- fhircrackr::fhir_crack(
-    bundles = specimen_bundles, design = specimen_description, verbose = 2
-)
+# Grab Specimen resources from FHIR API endpoint
+specimens <- grab_fhir(resource_name = "Specimen",
+                       desc_cols = resource_columns,
+                       url = fhir_api_url,
+                       cookie = cookies,
+                       format = "wide",
+                       tags = tags)
 
 # Change column names
 setnames(
@@ -671,48 +526,26 @@ specimens <- within(
 )
 
 # Replace NA with empty string
-specimens <- ReplaceNA(specimens)
+# specimens <- ReplaceNA(specimens)
 ```
 
 ```{r include-document}
 # /DocumentReference
-# Build a request URL for DocumentReference
-document_reference_request <- fhircrackr::fhir_url(
-    url = fhir_api_url,
-    resource = "DocumentReference",
-    parameters = c("_count" = 100, "_tag" = tags)
-)
+# Description Columns
+resource_columns <- c("Patient ID" = "subject/reference",
+                      "DocumentReference Status" = "status",
+                      "Document Status" = "docStatus",
+                      "Document Type" = "type/text",
+                      "Experiment Strategy ~ Data Category" = "category/coding/display",
+                      "URL" = "content/attachment/url")
 
-# Download bundles of DocumentReference resources
-document_reference_bundles <- fhircrackr::fhir_search(
-    request = document_reference_request,
-    add_headers = cookies,
-    verbose = 2
-)
-
-# Define a table description
-document_reference_description <- fhircrackr::fhir_table_description(
-    resource = "DocumentReference",
-    cols = c(
-        "Patient ID" = "subject/reference",
-        "DocumentReference Status" = "status",
-        "Document Status" = "docStatus",
-        "Document Type" = "type/text",
-        "Experiment Strategy ~ Data Category" = "category/coding/display",
-        "URL" = "content/attachment/url"
-    ),
-    sep = " ~ ",
-    brackets = c("<<", ">>"),
-    rm_empty_cols = FALSE,
-    format = "wide"
-)
-
-# Flatten DocumentReference resources
-document_references <- fhircrackr::fhir_crack(
-    bundles = document_reference_bundles,
-    design = document_reference_description,
-    verbose = 2
-)
+# Grab DocumentReference resources from FHIR API endpoint
+document_refereces <- grab_fhir(resource_name = "DocumentReference",
+                                desc_cols = resource_columns,
+                                url = fhir_api_url,
+                                cookie = cookies,
+                                format = "wide",
+                                tags = tags)
 
 # Change column names
 setnames(
@@ -755,7 +588,7 @@ document_references <- merge(
 document_references <- within(document_references, rm("Patient ID"))
 
 # Replace NA with empty string
-document_references <- ReplaceNA(document_references)
+# document_references <- ReplaceNA(document_references)
 ```
 
 ```{r include-cache}
@@ -794,5 +627,5 @@ dataset <- list(
 ```{r post}
 board <- pins::board_rsconnect()
 board |>
-  pins::pin_write(dataset, "clovoc-data-cookie", type = "rds")
+  pins::pin_write(dataset, "clovoc-data-test", type = "rds")
 ```
