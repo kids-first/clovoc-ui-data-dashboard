@@ -17,28 +17,29 @@ ReplaceNA <- function(df) {
     return(replace(df, is.na(df), ""))
 }
 
-grab_fhir <- function(resource_name, desc_cols, url, cookie, format, tags = NULL) {
+grab_fhir <- function(resource_name, desc_cols, url,
+                      cookie, format, tags = NULL) {
   # Create parameters for resource request, with or without tags
   if (!is.null(tags)) {
     parameters <- c("_count" = "100", "_tags" = tags)
   } else {
     parameters <- c("_count" = "100")
   }
-  
+
   # Build a request URL for resource
   resource_request <- fhircrackr::fhir_url(
     url = fhir_api_url,
     resource = resource_name,
     parameters = parameters
   )
-  
+
   # Download bundles of resources
   resource_bundles <- fhircrackr::fhir_search(
     request = resource_request,
     add_headers = cookie,
     verbose = 2
   )
-  
+
   # Define a resource table description
   resource_description <- fhircrackr::fhir_table_description(
     resource = resource_name,
@@ -48,12 +49,12 @@ grab_fhir <- function(resource_name, desc_cols, url, cookie, format, tags = NULL
     rm_empty_cols = FALSE,
     format = format
   )
-  
+
   # Flatten resources
   data <- fhircrackr::fhir_crack(
     bundles = resource_bundles, design = resource_description, verbose = 2
   )
-  
+
   # Return dataset
   data
 }
@@ -460,16 +461,18 @@ conditions <- within(conditions, rm("Patient ID"))
 ```{r include-specimen}
 # /Specimen
 # Description Columns
-resource_columns <- c("Patient ID" = "subject/reference",
-                      "Specimen Identifier System" = "identifier/system",
-                      "Specimen Identifier Value" = "identifier/value",
-                      "Specimen Status" = "status",
-                      "Specimen Type Name" = "type/text",
-                      "Specimen Type Ontology URI" = "type/coding/system",
-                      "Specimen Type Code" = "type/coding/code",
-                      "Body Site Name" = "collection/bodySite/text",
-                      "Body Site Ontology URI" = "collection/bodySite/coding/system",
-                      "Body Site Code" = "collection/bodySite/coding/code")
+resource_columns <- c(
+  "Patient ID" = "subject/reference",
+  "Specimen Identifier System" = "identifier/system",
+  "Specimen Identifier Value" = "identifier/value",
+  "Specimen Status" = "status",
+  "Specimen Type Name" = "type/text",
+  "Specimen Type Ontology URI" = "type/coding/system",
+  "Specimen Type Code" = "type/coding/code",
+  "Body Site Name" = "collection/bodySite/text",
+  "Body Site Ontology URI" = "collection/bodySite/coding/system",
+  "Body Site Code" = "collection/bodySite/coding/code"
+  )
 
 # Grab Specimen resources from FHIR API endpoint
 specimens <- grab_fhir(resource_name = "Specimen",
@@ -532,12 +535,14 @@ specimens <- within(
 ```{r include-document}
 # /DocumentReference
 # Description Columns
-resource_columns <- c("Patient ID" = "subject/reference",
-                      "DocumentReference Status" = "status",
-                      "Document Status" = "docStatus",
-                      "Document Type" = "type/text",
-                      "Experiment Strategy ~ Data Category" = "category/coding/display",
-                      "URL" = "content/attachment/url")
+resource_columns <- c(
+  "Patient ID" = "subject/reference",
+  "DocumentReference Status" = "status",
+  "Document Status" = "docStatus",
+  "Document Type" = "type/text",
+  "Experiment Strategy ~ Data Category" = "category/coding/display",
+  "URL" = "content/attachment/url"
+  )
 
 # Grab DocumentReference resources from FHIR API endpoint
 document_refereces <- grab_fhir(resource_name = "DocumentReference",
@@ -599,6 +604,17 @@ include_api_fhir_service <- list(
     "Specimen" = specimens,
     "DocumentReference" = document_references
 )
+```
+
+
+## Call SPARC API
+
+```{r query-sparc}
+sci_url <- "https://scicrunch.org/api/1/sparc-scigraph/dynamic/prod/sparc/anatomyPhenotypes/UBERON:0004535"
+sci_key <- Sys.getenv("SCICRUNCH_KEY")
+sparc_table <- httr::GET(sci_url, query = list(api_key = sci_key)) |>
+  httr::content(as = "text") |>
+  jsonlite::fromJSON()
 ```
 
 ## Combine Datasets
