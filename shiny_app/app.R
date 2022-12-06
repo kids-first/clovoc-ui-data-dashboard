@@ -4,6 +4,13 @@ library(shinyWidgets)
 library(shinydashboard)
 
 # UI component==================================================================
+picker_defaults <- c(
+  `actions-box` = TRUE,
+  `dropup-auto` = TRUE,
+  `live-search` = TRUE,
+  `window-padding` = "[40,0,40,0]"
+)
+
 ui <- dashboardPage(
   ## Dashboard Header===========================================================
   dashboardHeader(title = span(tagList(icon("fire"), "CLOVoc Data Dashboard"))),
@@ -32,184 +39,199 @@ ui <- dashboardPage(
               #### Patient tab filters
               fluidRow(
                 fluidRow(
-                  box(title = "Search a Research Study Identifier:",
+                  box(title = "Research Study Identifier:",
                       width = 2,
-                      selectInput("research_study_identifier",
+                      pickerInput("research_study_identifier",
                                   label = NULL,
                                   choices = NULL,
-                                  multiple = TRUE)),
-                  box(title = "Search a Group Identifier:",
+                                  multiple = TRUE,
+                                  options = picker_defaults)),
+                  box(title = "Group Identifier:",
                       width = 2,
-                      selectInput("group_identifier",
+                      pickerInput("group_identifier",
                                   label = NULL,
                                   choices = NULL,
-                                  multiple = TRUE)),
-                  box(title = "Search a Patient Identifier:",
+                                  multiple = TRUE,
+                                  options = picker_defaults)),
+                  box(title = "Patient Identifier:",
                       width = 2,
-                      selectInput("patient_id",
-                                  labe = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE)),
-                  box(title = "Filter by Race:",
-                      width = 2,
-                      selectInput("race",
+                      pickerInput("patient_id",
                                   label = NULL,
                                   choices = NULL,
-                                  multiple = TRUE)),
-                  box(title = "Filter by Ethnicity:",
+                                  multiple = TRUE,
+                                  options = picker_defaults)),
+                  box(title = "Race:",
                       width = 2,
-                      checkboxGroupInput("ethnicity",
-                                         label = NULL,
-                                         choices = NULL)),
-                  box(title = "Filter by Gender:",
+                      pickerInput("race",
+                                  label = NULL,
+                                  choices = NULL,
+                                  multiple = TRUE,
+                                  options = picker_defaults)),
+                  box(title = "Ethnicity:",
                       width = 2,
-                      checkboxGroupInput("gender",
-                                         label = NULL,
-                                         choices = NULL)))
+                      pickerInput("ethnicity",
+                                  label = NULL,
+                                  choices = NULL,
+                                  multiple = TRUE,
+                                  options = picker_defaults)),
+                  box(title = "Gender:",
+                      width = 2,
+                      pickerInput("gender",
+                                  label = NULL,
+                                  choices = NULL,
+                                  multiple = TRUE,
+                                  options = picker_defaults)))
               ),
               fluidRow(DT::dataTableOutput("patient_table"))),
       ### Condition tab======
       tabItem(tabName = "condition_tab",
               fluidRow(h2("Condition Data Tab")),
               fluidRow(
-                column(3,
-                       box(title = "Search a Patient Identifier:",
+                column(2,
+                       box(title = "Patient Identifier:",
                            width = NULL,
-                           selectInput("condition_patient_id",
-                                       labe = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE))
-                       ),
-                column(3,
-                       box(title = "Filter by Clinical Status:",
-                           width = NULL,
-                           checkboxGroupInput("clinical_status",
-                                              label = NULL,
-                                              choices = NULL)),
-                       box(title = "Filter by Verification Status:",
-                           width = NULL,
-                           checkboxGroupInput("verification_status",
-                                              label = NULL,
-                                              choices = NULL))
-                       ),
-                column(3,
-                       box(title = "Search a Condition Name:",
-                           width = NULL,
-                           selectInput("condition_name",
+                           pickerInput("condition_patient_id",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Search a Condition Ontology URI:",
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Clinical Status:",
                            width = NULL,
-                           selectInput("condition_uri",
+                           pickerInput("clinical_status",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Filter by Condition Code:",
+                                       multiple = TRUE,
+                                       options = picker_defaults))
+                ),
+                column(2,
+                       box(title = "Verification Status:",
+                           width = NULL,
+                           pickerInput("verification_status",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Condition Name:",
+                           width = NULL,
+                           pickerInput("condition_name",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))
+                ),
+                column(3,
+                       box(title = "Condition Ontology URI:",
+                           width = NULL,
+                           pickerInput("condition_uri",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Condition Code:",
                            width = NULL,
                            pickerInput("condition_code",
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = c(
-                                         `actions-box` = TRUE,
-                                         `dropup-auto` = TRUE,
-                                         `window-padding` = "[40,0,40,0]")))
+                                       options = picker_defaults))
                 ),
                 column(3,
-                       box(title = "Search a Body Site Name:",
+                       box(title = "Body Site Name:",
                            width = NULL,
-                           selectInput("condition_body_site_name",
+                           pickerInput("condition_body_site_name",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Search a Body Site Ontology URI:",
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Body Site Ontology URI:",
                            width = NULL,
-                           selectInput("condition_body_site_uri",
+                           pickerInput("condition_body_site_uri",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Filter by Body Site Code:",
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
+                column(2,
+                       box(title = "Body Site Code:",
                            width = NULL,
                            pickerInput("condition_body_site_code",
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = c(
-                                         `actions-box` = TRUE,
-                                         `dropup-auto` = TRUE,
-                                         `window-padding` = "[40,0,40,0]")))
+                                       options = picker_defaults))
                 )),
               fluidRow(DT::dataTableOutput("condition_table"))),
       ### Specimen tab======
       tabItem(tabName = "specimen_tab",
               fluidRow(h2("Specimen Data Tab")),
               fluidRow(
-                column(3,
-                       box(title = "Search a Patient Identifier:",
-                           width = NULL,
-                           selectInput("specimen_patient_id",
-                                       labe = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Search a Body Site Name:",
-                           width = NULL,
-                           selectInput("collection_body_type",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE))),
-                column(3,
-                       box(title = "Filter by Body Site Ontology URI:",
-                           width = NULL,
-                           selectInput("specimen_body_site_uri",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Filter by Body Site Code:",
-                           width = NULL,
-                           checkboxGroupInput("collection_body_code",
-                                              label = NULL,
-                                              choices = NULL))),
                 column(2,
-                       box(title = "Filter by Specimen Identifier:",
+                       box(title = "Patient Identifier:",
+                           width = NULL,
+                           pickerInput("specimen_patient_id",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Body Site Name:",
+                           width = NULL,
+                           pickerInput("collection_body_type",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
+                column(3,
+                       box(title = "Body Site Ontology URI:",
+                           width = NULL,
+                           pickerInput("specimen_body_site_uri",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Body Site Code:",
+                           width = NULL,
+                           pickerInput("collection_body_code",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
+                column(2,
+                       box(title = "Specimen Identifier:",
                            width = NULL,
                            pickerInput("specimen_identifier",
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = c(
-                                         `actions-box` = TRUE,
-                                         `dropup-auto` = TRUE,
-                                         `window-padding` = "[40,0,40,0]"))),
-                       box(title = "Filter by Specimen Status:",
+                                       options = picker_defaults)),
+                       box(title = "Specimen Status:",
                            width = NULL,
-                           checkboxGroupInput("specimen_status",
-                                              label = NULL,
-                                              choices = NULL))),
-                column(2,
-                       box(title = "Search a Specimen Type Name:",
-                           width = NULL,
-                           selectInput("specimen_type_name",
+                           pickerInput("specimen_status",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE)),
-                       box(title = "Search by Specimen Type Ontology URI:",
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
+                column(3,
+                       box(title = "Specimen Type Name:",
                            width = NULL,
-                           selectInput("specimen_type_uri",
+                           pickerInput("specimen_type_name",
                                        label = NULL,
                                        choices = NULL,
-                                       multiple = TRUE))),
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Specimen Type Ontology URI:",
+                           width = NULL,
+                           pickerInput("specimen_type_uri",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
                 column(2,
-                       box(title = "Filter by Specimen Type Code:",
+                       box(title = "Specimen Type Code:",
                            width = NULL,
                            pickerInput("specimen_type_code",
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = c(
-                                         `actions-box` = TRUE,
-                                         `dropup-auto` = TRUE,
-                                         `window-padding` = "[40,0,40,0]"))))
+                                       options = picker_defaults)))
               ),
               fluidRow(DT::dataTableOutput("specimen_table"))),
       ### Document Reference tab======
@@ -217,54 +239,61 @@ ui <- dashboardPage(
               fluidRow(h2("Document Reference Tab")),
               fluidRow(
                 column(3,
-                  box(title = "Search by Patient Identifier:",
-                      width = NULL,
-                      selectInput("docref_patient_id",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE)),
-                  box(title = "Filter by DocumentReference Status:",
-                      width = NULL,
-                      checkboxGroupInput("docref_status",
-                                         label = NULL,
-                                         choices = NULL))),
+                       box(title = "Patient Identifier:",
+                           width = NULL,
+                           pickerInput("docref_patient_id",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "DocumentReference Status:",
+                           width = NULL,
+                           pickerInput("docref_status",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
                 column(3,
-                  box(title = "Filter by Document Status:",
-                      width = NULL,
-                      checkboxGroupInput("doc_status",
-                                         label = NULL,
-                                         choices = NULL)),
-                  box(title = "Filter by Document Type:",
-                      width = NULL,
-                      pickerInput("doc_type",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = c(
-                                    `actions-box` = TRUE,
-                                    `dropup-auto` = TRUE,
-                                    `window-padding` = "[40,0,40,0]")))),
+                       box(title = "Document Status:",
+                           width = NULL,
+                           pickerInput("doc_status",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Document Type:",
+                           width = NULL,
+                           pickerInput("doc_type",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
                 column(3,
-                  box(title = "Filter by Experiment Strategy:",
-                      width = NULL,
-                      checkboxGroupInput("experiment_strategy",
-                                         label = NULL,
-                                         choices = NULL)),
-                  box(title = "Filter by Data Category:",
-                      width = NULL,
-                      checkboxGroupInput("data_category",
-                                         label = NULL,
-                                         choices = NULL))),
+                       box(title = "Experiment Strategy:",
+                           width = NULL,
+                           pickerInput("experiment_strategy",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults)),
+                       box(title = "Data Category:",
+                           width = NULL,
+                           pickerInput("data_category",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))),
                 column(3,
-                  box(title = "Search by URI:",
-                      width = NULL,
-                      selectInput("docref_uri",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE))
+                       box(title = "URI:",
+                           width = NULL,
+                           pickerInput("docref_uri",
+                                       label = NULL,
+                                       choices = NULL,
+                                       multiple = TRUE,
+                                       options = picker_defaults))
                 )
-      ),
-      fluidRow(DT::dataTableOutput("docref_table")))
+              ),
+              fluidRow(DT::dataTableOutput("docref_table")))
     )
   )
 )
@@ -291,11 +320,11 @@ server <- function(input, output, session) {
   patient_data <- reactive({
     data <- dataset[["Patient"]]
     if (!is.null(input$research_study_identifier)) {
-        data <-
-          data[
-            data$`ResearchStudy Identifier` %in%
-              input$research_study_identifier,
-          ]
+      data <-
+        data[
+          data$`ResearchStudy Identifier` %in%
+            input$research_study_identifier,
+        ]
     }
     if (!is.null(input$group_identifier)) {
       data <- data[data$`Group Identifier` %in% input$group_identifier, ]
@@ -410,76 +439,76 @@ server <- function(input, output, session) {
 
   ## Populate filter options====================================================
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "research_study_identifier",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$`ResearchStudy Identifier`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "group_identifier",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$`Group Identifier`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "patient_id",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$`Patient Identifier`)))
   })
   observe({
-    updateSelectInput(session,
-                             "race",
-                             selected = NULL,
-                             choices = sort(unique(dataset[["Patient"]]$Race)))
+    updatePickerInput(session,
+                      "race",
+                      selected = NULL,
+                      choices = sort(unique(dataset[["Patient"]]$Race)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "ethnicity",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Patient"]]$Ethnicity)))
+    updatePickerInput(session,
+                      "ethnicity",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Patient"]]$Ethnicity)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "gender",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Patient"]]$Gender)))
+    updatePickerInput(session,
+                      "gender",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Patient"]]$Gender)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "condition_patient_id",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Condition"]]$`Patient Identifier`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "clinical_status",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Condition"]]$`Clinical Status`)))
+    updatePickerInput(session,
+                      "clinical_status",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Clinical Status`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "verification_status",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Condition"]]$`Verification Status`)))
+    updatePickerInput(session,
+                      "verification_status",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Condition"]]$`Verification Status`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "condition_name",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Condition"]]$`Condition Name`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "condition_uri",
                       selected = NULL,
                       choices = sort(unique(
@@ -493,14 +522,14 @@ server <- function(input, output, session) {
                         dataset[["Condition"]]$`Condition Code`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "condition_body_site_name",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Condition"]]$`Body Site Name`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "condition_body_site_uri",
                       selected = NULL,
                       choices = sort(unique(
@@ -514,32 +543,32 @@ server <- function(input, output, session) {
                         dataset[["Condition"]]$`Body Site Code`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "specimen_patient_id",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Patient Identifier`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "collection_body_type",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Body Site Name`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "specimen_body_site_uri",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Body Site Ontology URI`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "collection_body_code",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Specimen"]]$`Body Site Code`)))
+    updatePickerInput(session,
+                      "collection_body_code",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Body Site Code`)))
   })
   observe({
     updatePickerInput(session,
@@ -549,21 +578,21 @@ server <- function(input, output, session) {
                         dataset[["Specimen"]]$`Specimen Identifier`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "specimen_status",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["Specimen"]]$`Specimen Status`)))
+    updatePickerInput(session,
+                      "specimen_status",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["Specimen"]]$`Specimen Status`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "specimen_type_name",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Specimen Type Name`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "specimen_type_uri",
                       selected = NULL,
                       choices = sort(unique(
@@ -577,14 +606,14 @@ server <- function(input, output, session) {
                         dataset[["Specimen"]]$`Specimen Type Code`)))
   })
   observe({
-    updateSelectInput(session,
+    updatePickerInput(session,
                       "docref_patient_id",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["DocumentReference"]]$`Patient Identifier`)))
   })
   observe({
-    updateCheckboxGroupInput(
+    updatePickerInput(
       session,
       "docref_status",
       selected = NULL,
@@ -592,7 +621,7 @@ server <- function(input, output, session) {
         dataset[["DocumentReference"]]$`DocumentReference Status`)))
   })
   observe({
-    updateCheckboxGroupInput(
+    updatePickerInput(
       session,
       "doc_status",
       selected = NULL,
@@ -606,7 +635,7 @@ server <- function(input, output, session) {
                         dataset[["DocumentReference"]]$`Document Type`)))
   })
   observe({
-    updateCheckboxGroupInput(
+    updatePickerInput(
       session,
       "experiment_strategy",
       selected = NULL,
@@ -614,18 +643,18 @@ server <- function(input, output, session) {
         dataset[["DocumentReference"]]$`Experiment Strategy`)))
   })
   observe({
-    updateCheckboxGroupInput(session,
-                             "data_category",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["DocumentReference"]]$`Data Category`)))
+    updatePickerInput(session,
+                      "data_category",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["DocumentReference"]]$`Data Category`)))
   })
   observe({
-    updateSelectInput(session,
-                             "docref_uri",
-                             selected = NULL,
-                             choices = sort(unique(
-                               dataset[["DocumentReference"]]$`URL`)))
+    updatePickerInput(session,
+                      "docref_uri",
+                      selected = NULL,
+                      choices = sort(unique(
+                        dataset[["DocumentReference"]]$`URL`)))
   })
 
   ## Output datasets to UI======================================================
