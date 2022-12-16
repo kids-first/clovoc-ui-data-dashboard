@@ -666,9 +666,11 @@ server <- function(input, output, session) {
   options = list(
     pageLength = 25,
     dom = "Bfrtip",
-    buttons = list("copy", "print", list(extend = "collection",
-                                         buttons = c("csv", "excel", "pdf"),
-                                         text = "Download")),
+    buttons = list("copy",
+                   "print",
+                   list(extend = "collection",
+                        buttons = c("csv", "excel", "pdf"),
+                        text = "Download")),
     scrollX = TRUE,
     scrollY = 500)
   )
@@ -681,11 +683,25 @@ server <- function(input, output, session) {
   options = list(
     pageLength = 25,
     dom = "Bfrtip",
-    buttons = list("copy", "print", list(extend = "collection",
-                                         buttons = c("csv", "excel", "pdf"),
-                                         text = "Download"
-    )))
-  )
+    buttons = list("copy",
+                   "print",
+                   list(extend = "collection",
+                        buttons = c("csv", "excel", "pdf"),
+                        text = "Download"),
+                   list(extend = "collection",
+                        text = "Apply these filters across tabs",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_patient', true, {priority: 'event'});
+                                            alert( 'Cross-tab filtering applied' );
+                                        }")),
+                   list(extend = "collection",
+                        text = "Reset cross-tab filtering",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
+                                            alert( 'Filtering across tabs reset' );
+                                        }"))
+    )
+  ))
 
   ### Output condition dataset==================================================
   output$condition_table <- DT::renderDataTable({
@@ -697,9 +713,21 @@ server <- function(input, output, session) {
     dom = "Bfrtip",
     buttons = list("copy", "print", list(extend = "collection",
                                          buttons = c("csv", "excel", "pdf"),
-                                         text = "Download"
-    )))
-  )
+                                         text = "Download"),
+                   list(extend = "collection",
+                        text = "Apply these filters across tabs",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_condition', true, {priority: 'event'});
+                                            alert( 'Cross-tab filtering applied' );
+                                        }")),
+                   list(extend = "collection",
+                        text = "Reset cross-tab filtering",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
+                                            alert( 'Filtering across tabs reset' );
+                                        }"))
+    )
+  ))
 
   ### Output specimen dataset===================================================
   output$specimen_table <- DT::renderDataTable({
@@ -709,11 +737,25 @@ server <- function(input, output, session) {
   options = list(
     pageLength = 25,
     dom = "Bfrtip",
-    buttons = list("copy", "print", list(extend = "collection",
-                                         buttons = c("csv", "excel", "pdf"),
-                                         text = "Download"
-    )))
-  )
+    buttons = list("copy",
+                   "print",
+                   list(extend = "collection",
+                        buttons = c("csv", "excel", "pdf"),
+                        text = "Download"),
+                   list(extend = "collection",
+                        text = "Apply these filters across tabs",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_specimen', true, {priority: 'event'});
+                                            alert( 'Cross-tab filtering applied' );
+                                        }")),
+                   list(extend = "collection",
+                        text = "Reset cross-tab filtering",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
+                                            alert( 'Filtering across tabs reset' );
+                                       }"))
+    )
+  ))
 
   ### Output document reference dataset=========================================
   output$docref_table <- DT::renderDataTable({
@@ -723,10 +765,24 @@ server <- function(input, output, session) {
   options = list(
     pageLength = 25,
     dom = "Bfrtip",
-    buttons = list("copy", "print", list(extend = "collection",
-                                         buttons = c("csv", "excel", "pdf"),
-                                         text = "Download"
-    )))
+    buttons = list("copy",
+                   "print",
+                   list(extend = "collection",
+                        buttons = c("csv", "excel", "pdf"),
+                        text = "Download"),
+                   list(extend = "collection",
+                        text = "Apply these filters across tabs",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_docref', true, {priority: 'event'});
+                                            alert( 'Cross-tab filtering applied' );
+                                        }")),
+                   list(extend = "collection",
+                        text = "Reset cross-tab filtering",
+                        action = DT::JS("function( e, dt, node, config ) {
+                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
+                                            alert( 'Filtering across tabs reset' );
+                                       }"))
+    ))
   )
 }
 
