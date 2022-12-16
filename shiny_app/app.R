@@ -305,6 +305,107 @@ server <- function(input, output, session) {
   dataset <- pins::pin_read(board, "nemarichc/clovoc-data-cookie")
 
   ## Separate and filter datasets===============================================
+  ### Filter application functions==============================================
+  apply_tab_filters <- function(data, tabfilter_list) {
+    for (n in 1:NROW(tabfilter_list)) {
+      column_name <- tabfilter_list[[n, 1]]
+      filter_name <- tabfilter_list[[n, 2]]
+      if (!is.null(input[[filter_name]])) {
+        data <- data[data[[column_name]] %in% input[[filter_name]], ]
+      }
+    }
+    return(data)
+  }
+
+  apply_cross_filters <- function(data, crossfilter_list) {
+    apply <- !(is.null(cross_filters$patient) ||
+                 is.null(cross_filters$condition) ||
+                 is.null(cross_filters$specimen) ||
+                 is.null(cross_filters$docref))
+    if (apply) return(data)
+    for (n in 1:NROW(crossfilter_list)) {
+      filter_values <- cross_filters[[crossfilter_list[[n, 2]]]][["Patient Identifier"]]
+      if (!is.null(filter_values)) {
+        data <- data[data[["Patient Identifier"]] %in% filter_values, ]
+      }
+    }
+    return(data)
+  }
+  ### Cross-tab filtering=======================================================
+  cross_filters <- reactiveValues(patient = NULL,
+                                  condition = NULL,
+                                  specimen = NULL,
+                                  docref = NULL)
+
+  observeEvent(input$crossfilter_reset, {
+    cross_filters$patient <- NULL
+    cross_filters$condition <- NULL
+    cross_filters$specimen <- NULL
+    cross_filters$docref <- NULL
+  })
+
+  observeEvent(input$crossfilter_patient, {
+    cross_filters$patient <- dataset[["Patient"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,               ~filter_name,
+        "ResearchStudy Identifier", "research_study_identifier",
+        "Group Identifier",         "group_identifier",
+        "Patient Identifier",       "patient_id",
+        "Race",                     "race",
+        "Ethnicity",                "ethnicity",
+        "Gender",                   "gender"
+      )) |>
+      unique()
+  })
+
+  observeEvent(input$crossfilter_condition, {
+    cross_filters$condition <- dataset[["Condition"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,             ~filter_name,
+        "Patient Identifier",     "condition_patient_id",
+        "Clinical Status",        "clinical_status",
+        "Verification Status",    "verification_status",
+        "Condition Name",         "condition_name",
+        "Condition Ontology URI", "condition_uri",
+        "Condition Code",         "condition_code",
+        "Body Site Name",         "condition_body_site_name",
+        "Body Site Ontology URI", "condition_body_site_uri",
+        "Body Site Code",         "condition_body_site_code"
+      )) |>
+      unique()
+  })
+
+  observeEvent(input$crossfilter_specimen, {
+    cross_filters$specimen <- dataset[["Specimen"]]|>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,                 ~filter_name,
+        "Patient Identifier",         "specimen_patient_id",
+        "Body Site Name",             "collection_body_name",
+        "Body Site Ontology URI",     "collection_body_site_uri",
+        "Body Site Code",             "collection_body_code",
+        "Specimen Status",            "specimen_status",
+        "Specimen Type Name",         "specimen_type_name",
+        "Specimen Type Ontology URI", "specimen_type_uri",
+        "Specimen Type Code",         "specimen_type_code"
+      )) |>
+      unique()
+  })
+
+  observeEvent(input$crossfilter_docref, {
+    cross_filters$docref <- dataset[["DocumentReference"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,               ~filter_name,
+        "Patient Identifier",       "docref_patient_id",
+        "DocumentReference Status", "docref_status",
+        "Document Status",          "doc_status",
+        "Document Type",            "doc_type",
+        "Experiment Strategy",      "experiment_strategy",
+        "Data Category",            "data_category",
+        "URL",                      "docref_uri"
+      )) |>
+      unique()
+  })
+
   ### Create combined dataset===================================================
   combined_data <- reactive({
     data <- dataset[["Patient"]] |>
@@ -316,124 +417,94 @@ server <- function(input, output, session) {
                        by = "Patient Identifier")
     return(data)
   })
+
   ### Filter patient dataset====================================================
   patient_data <- reactive({
-    data <- dataset[["Patient"]]
-    if (!is.null(input$research_study_identifier)) {
-      data <-
-        data[
-          data$`ResearchStudy Identifier` %in%
-            input$research_study_identifier,
-        ]
-    }
-    if (!is.null(input$group_identifier)) {
-      data <- data[data$`Group Identifier` %in% input$group_identifier, ]
-    }
-    if (!is.null(input$patient_id)) {
-      data <- data[data$`Patient Identifier` %in% input$patient_id, ]
-    }
-    if (!is.null(input$race)) {
-      data <- data[data$Race %in% input$race, ]
-    }
-    if (!is.null(input$ethnicity)) {
-      data <- data[data$Ethnicity %in% input$ethnicity, ]
-    }
-    if (!is.null(input$gender)) {
-      data <- data[data$Gender %in% input$gender, ]
-    }
+    data <- dataset[["Patient"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,               ~filter_name,
+        "ResearchStudy Identifier", "research_study_identifier",
+        "Group Identifier",         "group_identifier",
+        "Patient Identifier",       "patient_id",
+        "Race",                     "race",
+        "Ethnicity",                "ethnicity",
+        "Gender",                   "gender"
+      )) |>
+      apply_cross_filters(tibble::tribble(
+        ~tab_name,        ~filter_name,
+        "condition_data", "condition",
+        "specimen_data",  "specimen",
+        "docref_data",    "docref"
+      ))
     return(data)
   })
 
   ### Filter condition dataset==================================================
   condition_data <- reactive({
-    data <- dataset[["Condition"]]
-    if (!is.null(input$condition_patient_id)) {
-      data <- data[data$`Patient Identifier` %in% input$condition_patient_id, ]
-    }
-    if (!is.null(input$clinical_status)) {
-      data <- data[data$`Clinical Status` %in% input$clinical_status, ]
-    }
-    if (!is.null(input$verification_status)) {
-      data <- data[data$`Verification Status` %in% input$verification_status, ]
-    }
-    if (!is.null(input$condition_name)) {
-      data <- data[data$`Condition Name` %in% input$condition_name, ]
-    }
-    if (!is.null(input$condition_uri)) {
-      data <- data[data$`Condition Ontology URI` %in% input$condition_uri, ]
-    }
-    if (!is.null(input$condition_code)) {
-      data <- data[data$`Condition Code` %in% input$condition_code, ]
-    }
-    if (!is.null(input$condition_body_site_name)) {
-      data <- data[data$`Body Site Name` %in% input$condition_body_site_name, ]
-    }
-    if (!is.null(input$condition_body_site_uri)) {
-      data <- data[data$`Body Site Ontology URI` %in%
-                     input$condition_body_site_uri, ]
-    }
-    if (!is.null(input$condition_body_site_code)) {
-      data <- data[data$`Body Site Code` %in% input$condition_body_site_code, ]
-    }
+    data <- dataset[["Condition"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,             ~filter_name,
+        "Patient Identifier",     "condition_patient_id",
+        "Clinical Status",        "clinical_status",
+        "Verification Status",    "verification_status",
+        "Condition Name",         "condition_name",
+        "Condition Ontology URI", "condition_uri",
+        "Condition Code",         "condition_code",
+        "Body Site Name",         "condition_body_site_name",
+        "Body Site Ontology URI", "condition_body_site_uri",
+        "Body Site Code",         "condition_body_site_code"
+      )) |>
+      apply_cross_filters(tibble::tribble(
+        ~tab_name,       ~filter_name,
+        "patient_data",  "patient",
+        "specimen_data", "specimen",
+        "docref_data",   "docref"
+      ))
     return(data)
   })
 
   ### Filter specimen dataset===================================================
   specimen_data <- reactive({
-    data <- dataset[["Specimen"]]
-    if (!is.null(input$specimen_patient_id)) {
-      data <- data[data$`Patient Identifier` %in% input$specimen_patient_id, ]
-    }
-    if (!is.null(input$collection_body_name)) {
-      data <- data[data$`Body Site Name` %in% input$collection_body_name, ]
-    }
-    if (!is.null(input$collection_body_site_uri)) {
-      data <- data[data$`Body Site Ontology URI` %in%
-                     input$collection_body_site_uri, ]
-    }
-    if (!is.null(input$collection_body_code)) {
-      data <- data[data$`Body Site Code` %in% input$collection_body_code, ]
-    }
-    if (!is.null(input$specimen_status)) {
-      data <- data[data$`Specimen Status` %in% input$specimen_status, ]
-    }
-    if (!is.null(input$specimen_type_name)) {
-      data <- data[data$`Specimen Type Name` %in% input$specimen_type_name, ]
-    }
-    if (!is.null(input$specimen_type_uri)) {
-      data <- data[data$`Specimen Type Ontology URI` %in%
-                     input$specimen_type_uri, ]
-    }
-    if (!is.null(input$specimen_type_code)) {
-      data <- data[data$`Specimen Type Code` %in% input$specimen_type_code, ]
-    }
+    data <- dataset[["Specimen"]]|>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,                 ~filter_name,
+        "Patient Identifier",         "specimen_patient_id",
+        "Body Site Name",             "collection_body_name",
+        "Body Site Ontology URI",     "collection_body_site_uri",
+        "Body Site Code",             "collection_body_code",
+        "Specimen Status",            "specimen_status",
+        "Specimen Type Name",         "specimen_type_name",
+        "Specimen Type Ontology URI", "specimen_type_uri",
+        "Specimen Type Code",         "specimen_type_code"
+      )) |>
+      apply_cross_filters(tibble::tribble(
+        ~tab_name,        ~filter_name,
+        "patient_data",   "patient",
+        "condition_data", "condition",
+        "docref_data",    "docref"
+      ))
     return(data)
   })
 
   ### Filter document reference dataset=========================================
   docref_data <- reactive({
-    data <- dataset[["DocumentReference"]]
-    if (!is.null(input$docref_patient_id)) {
-      data <- data[data$`Patient Identifier` %in% input$docref_patient_id]
-    }
-    if (!is.null(input$docref_status)) {
-      data <- data[data$`DocumentReference Status` %in% input$docref_status, ]
-    }
-    if (!is.null(input$doc_status)) {
-      data <- data[data$`Document Status` %in% input$doc_status, ]
-    }
-    if (!is.null(input$doc_type)) {
-      data <- data[data$`Document Type` %in% input$doc_type, ]
-    }
-    if (!is.null(input$experiment_strategy)) {
-      data <- data[data$`Experiment Strategy` %in% input$experiment_strategy, ]
-    }
-    if (!is.null(input$data_category)) {
-      data <- data[data$`Data Category` %in% input$data_category, ]
-    }
-    if (!is.null(input$docref_uri)) {
-      data <- data[data$`URL` %in% input$docref_uri, ]
-    }
+    data <- dataset[["DocumentReference"]] |>
+      apply_tab_filters(tibble::tribble(
+        ~column_name,               ~filter_name,
+        "Patient Identifier",       "docref_patient_id",
+        "DocumentReference Status", "docref_status",
+        "Document Status",          "doc_status",
+        "Document Type",            "doc_type",
+        "Experiment Strategy",      "experiment_strategy",
+        "Data Category",            "data_category",
+        "URL",                      "docref_uri"
+      )) |>
+      apply_cross_filters(tibble::tribble(
+        ~tab_name,        ~filter_name,
+        "patient_data",   "patient",
+        "condition_data", "condition",
+        "specimen_data",  "specimen"
+      ))
     return(data)
   })
 
