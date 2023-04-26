@@ -440,11 +440,7 @@ server <- function(input, output, session) {
         "Clinical Status",        "clinical_status",
         "Verification Status",    "verification_status",
         "Condition Name",         "condition_name",
-        "Condition Ontology URI", "condition_uri",
-        "Condition Code",         "condition_code",
-        "Body Site Name",         "condition_body_site_name",
-        "Body Site Ontology URI", "condition_body_site_uri",
-        "Body Site Code",         "condition_body_site_code"
+        "Body Site Name",         "condition_body_site_name"
       )) |>
       apply_cross_filters(tibble::tribble(
         ~tab_name,       ~filter_name,
@@ -462,12 +458,8 @@ server <- function(input, output, session) {
         ~column_name,                 ~filter_name,
         "Patient Identifier",         "specimen_patient_id",
         "Body Site Name",             "collection_body_name",
-        "Body Site Ontology URI",     "collection_body_site_uri",
-        "Body Site Code",             "collection_body_code",
         "Specimen Status",            "specimen_status",
-        "Specimen Type Name",         "specimen_type_name",
-        "Specimen Type Ontology URI", "specimen_type_uri",
-        "Specimen Type Code",         "specimen_type_code"
+        "Specimen Type Name",         "specimen_type_name"
       )) |>
       apply_cross_filters(tibble::tribble(
         ~tab_name,        ~filter_name,
@@ -572,38 +564,10 @@ server <- function(input, output, session) {
   })
   observe({
     updatePickerInput(session,
-                      "condition_uri",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Condition"]]$`Condition Ontology URI`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "condition_code",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Condition"]]$`Condition Code`)))
-  })
-  observe({
-    updatePickerInput(session,
                       "condition_body_site_name",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Condition"]]$`Body Site Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "condition_body_site_uri",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Condition"]]$`Body Site Ontology URI`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "condition_body_site_code",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Condition"]]$`Body Site Code`)))
   })
   observe({
     updatePickerInput(session,
@@ -618,20 +582,6 @@ server <- function(input, output, session) {
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Body Site Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_body_site_uri",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Body Site Ontology URI`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "collection_body_code",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Body Site Code`)))
   })
   observe({
     updatePickerInput(session,
@@ -653,20 +603,6 @@ server <- function(input, output, session) {
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Specimen Type Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_type_uri",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Specimen Type Ontology URI`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_type_code",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Specimen Type Code`)))
   })
   observe({
     updatePickerInput(session,
