@@ -366,11 +366,7 @@ server <- function(input, output, session) {
         "Clinical Status",        "clinical_status",
         "Verification Status",    "verification_status",
         "Condition Name",         "condition_name",
-        "Condition Ontology URI", "condition_uri",
-        "Condition Code",         "condition_code",
-        "Body Site Name",         "condition_body_site_name",
-        "Body Site Ontology URI", "condition_body_site_uri",
-        "Body Site Code",         "condition_body_site_code"
+        "Body Site Name",         "condition_body_site_name"
       )) |>
       unique()
   })
@@ -381,12 +377,8 @@ server <- function(input, output, session) {
         ~column_name,                 ~filter_name,
         "Patient Identifier",         "specimen_patient_id",
         "Body Site Name",             "collection_body_name",
-        "Body Site Ontology URI",     "collection_body_site_uri",
-        "Body Site Code",             "collection_body_code",
         "Specimen Status",            "specimen_status",
-        "Specimen Type Name",         "specimen_type_name",
-        "Specimen Type Ontology URI", "specimen_type_uri",
-        "Specimen Type Code",         "specimen_type_code"
+        "Specimen Type Name",         "specimen_type_name"
       )) |>
       unique()
   })
