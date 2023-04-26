@@ -127,7 +127,7 @@ ui <- dashboardPage(
                                        choices = NULL,
                                        multiple = TRUE,
                                        options = picker_defaults))),
-              fluidRow(DT::dataTableOutput("condition_table"))),
+              fluidRow(DT::dataTableOutput("condition_table")))),
       ### Specimen tab======
       tabItem(tabName = "specimen_tab",
               fluidRow(h2("Specimen Data Tab")),
