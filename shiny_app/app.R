@@ -17,12 +17,12 @@ ui <- dashboardPage(
   ## Dashboard Sidebar==========================================================
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Combined Data", tabName = "combined_tab"), #TODO Add icon
-      menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
       menuItem("Conditions", tabName = "condition_tab", icon = icon("tags")),
-      menuItem("Specimens", tabName = "specimen_tab", icon = icon("vial")),
       menuItem("Document References", tabName = "docref_tab",
-               icon = icon("file-medical"))
+               icon = icon("file-medical")),
+      menuItem("Specimens", tabName = "specimen_tab", icon = icon("vial")),
+      menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
+      menuItem("Combined Data", tabName = "combined_tab") #TODO Add icon
     )
   ),
   ## Dashboard Body=============================================================
