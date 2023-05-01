@@ -305,12 +305,12 @@ server <- function(input, output, session) {
 
   ### Create combined dataset===================================================
   combined_data <- reactive({
-    data <- dataset[["Patient"]] |>
-      dplyr::left_join(dataset[["Condition"]],
+    data <- cross_filters$patient |>
+      dplyr::left_join(cross_filters$condition,
                        by = "Patient Identifier") |>
-      dplyr::left_join(dataset[["Specimen"]],
+      dplyr::left_join(cross_filters$specimen,
                        by = "Patient Identifier") |>
-      dplyr::left_join(dataset[["DocumentReference"]],
+      dplyr::left_join(cross_filters$docref,
                        by = "Patient Identifier")
     return(data)
   })
