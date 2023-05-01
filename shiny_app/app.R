@@ -370,13 +370,13 @@ server <- function(input, output, session) {
     data <- dataset[["Specimen"]]|>
       dplyr::select("Patient Identifier",
                     "Body Site Name",
-                    "Specimen Status",
+                    "Specimen Identifier",
                     "Specimen Type Name") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,                 ~filter_name,
         "Patient Identifier",         "specimen_patient_id",
         "Body Site Name",             "collection_body_name",
-        "Specimen Status",            "specimen_status",
+        "Specimen Identifier",        "specimen_identifier",
         "Specimen Type Name",         "specimen_type_name"
       )) |>
       apply_cross_filters(tibble::tribble(
@@ -503,13 +503,6 @@ server <- function(input, output, session) {
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Specimen"]]$`Specimen Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_status",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Specimen Status`)))
   })
   observe({
     updatePickerInput(session,
