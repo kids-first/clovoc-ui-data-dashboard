@@ -46,13 +46,6 @@ ui <- dashboardPage(
                                   choices = NULL,
                                   multiple = TRUE,
                                   options = picker_defaults)),
-                  box(title = "Group Identifier:",
-                      width = 2,
-                      pickerInput("group_identifier",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)),
                   box(title = "Patient Identifier:",
                       width = 2,
                       pickerInput("patient_id",
@@ -182,22 +175,8 @@ ui <- dashboardPage(
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = picker_defaults)),
-                       box(title = "DocumentReference Status:",
-                           width = NULL,
-                           pickerInput("docref_status",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
                                        options = picker_defaults))),
                 column(3,
-                       box(title = "Document Status:",
-                           width = NULL,
-                           pickerInput("doc_status",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)),
                        box(title = "Document Type:",
                            width = NULL,
                            pickerInput("doc_type",
@@ -212,23 +191,15 @@ ui <- dashboardPage(
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = picker_defaults)),
+                                       options = picker_defaults))),
+                column(3,
                        box(title = "Data Category:",
                            width = NULL,
                            pickerInput("data_category",
                                        label = NULL,
                                        choices = NULL,
                                        multiple = TRUE,
-                                       options = picker_defaults))),
-                column(3,
-                       box(title = "URI:",
-                           width = NULL,
-                           pickerInput("docref_uri",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))
-                )
+                                       options = picker_defaults)))
               ),
               fluidRow(DT::dataTableOutput("docref_table")))
     )
@@ -286,7 +257,6 @@ server <- function(input, output, session) {
       apply_tab_filters(tibble::tribble(
         ~column_name,               ~filter_name,
         "ResearchStudy Identifier", "research_study_identifier",
-        "Group Identifier",         "group_identifier",
         "Patient Identifier",       "patient_id",
         "Race",                     "race",
         "Ethnicity",                "ethnicity",
@@ -325,8 +295,6 @@ server <- function(input, output, session) {
       apply_tab_filters(tibble::tribble(
         ~column_name,               ~filter_name,
         "Patient Identifier",       "docref_patient_id",
-        "DocumentReference Status", "docref_status",
-        "Document Status",          "doc_status",
         "Document Type",            "doc_type",
         "Experiment Strategy",      "experiment_strategy",
         "Data Category",            "data_category",
@@ -350,10 +318,14 @@ server <- function(input, output, session) {
   ### Filter patient dataset====================================================
   patient_data <- reactive({
     data <- dataset[["Patient"]] |>
+      dplyr::select("ResearchStudy Identifier",
+                    "Patient Identifier",
+                    "Race",
+                    "Ethnicity",
+                    "Gender") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,               ~filter_name,
         "ResearchStudy Identifier", "research_study_identifier",
-        "Group Identifier",         "group_identifier",
         "Patient Identifier",       "patient_id",
         "Race",                     "race",
         "Ethnicity",                "ethnicity",
@@ -371,6 +343,11 @@ server <- function(input, output, session) {
   ### Filter condition dataset==================================================
   condition_data <- reactive({
     data <- dataset[["Condition"]] |>
+      dplyr::select("Patient Identifier",
+                    "Clinical Status",
+                    "Verification Status",
+                    "Condition Name",
+                    "Body Site Name") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,             ~filter_name,
         "Patient Identifier",     "condition_patient_id",
@@ -391,6 +368,10 @@ server <- function(input, output, session) {
   ### Filter specimen dataset===================================================
   specimen_data <- reactive({
     data <- dataset[["Specimen"]]|>
+      dplyr::select("Patient Identifier",
+                    "Body Site Name",
+                    "Specimen Status",
+                    "Specimen Type Name") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,                 ~filter_name,
         "Patient Identifier",         "specimen_patient_id",
@@ -410,11 +391,14 @@ server <- function(input, output, session) {
   ### Filter document reference dataset=========================================
   docref_data <- reactive({
     data <- dataset[["DocumentReference"]] |>
+      dplyr::select("Patient Identifier",
+                    "Document Type",
+                    "Experiment Strategy",
+                    "Data Category",
+                    "URL") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,               ~filter_name,
         "Patient Identifier",       "docref_patient_id",
-        "DocumentReference Status", "docref_status",
-        "Document Status",          "doc_status",
         "Document Type",            "doc_type",
         "Experiment Strategy",      "experiment_strategy",
         "Data Category",            "data_category",
@@ -436,13 +420,6 @@ server <- function(input, output, session) {
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$`ResearchStudy Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "group_identifier",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Patient"]]$`Group Identifier`)))
   })
   observe({
     updatePickerInput(session,
@@ -547,21 +524,6 @@ server <- function(input, output, session) {
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["DocumentReference"]]$`Patient Identifier`)))
-  })
-  observe({
-    updatePickerInput(
-      session,
-      "docref_status",
-      selected = NULL,
-      choices = sort(unique(
-        dataset[["DocumentReference"]]$`DocumentReference Status`)))
-  })
-  observe({
-    updatePickerInput(
-      session,
-      "doc_status",
-      selected = NULL,
-      choices = sort(unique(dataset[["DocumentReference"]]$`Document Status`)))
   })
   observe({
     updatePickerInput(session,
