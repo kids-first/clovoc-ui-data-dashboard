@@ -1,7 +1,9 @@
 # Load packages=================================================================
 library(shiny)
+library(shinyjs)
 library(shinyWidgets)
 library(shinydashboard)
+library(sortable)
 
 # UI component==================================================================
 picker_defaults <- c(
@@ -17,191 +19,139 @@ ui <- dashboardPage(
   ## Dashboard Sidebar==========================================================
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Conditions", tabName = "condition_tab", icon = icon("tags")),
-      menuItem("Document References", tabName = "docref_tab",
-               icon = icon("file-medical")),
-      menuItem("Specimens", tabName = "specimen_tab", icon = icon("vial")),
-      menuItem("Patients", tabName = "patient_tab", icon = icon("user")),
-      menuItem("Combined Data", tabName = "combined_tab") #TODO Add icon
+      menuItem("Cohort Generation", tabName = "cohort_tab",
+               icon = icon("file-medical"))
     )
   ),
   ## Dashboard Body=============================================================
   dashboardBody(
     tabItems(
       ### Combined Data tab====
-      tabItem(tabName = "combined_tab",
-              fluidRow(h2("Combined Data")),
-              fluidRow(DT::dataTableOutput("combined_table"))),
-      ### Patient tab======
-      tabItem(tabName = "patient_tab",
-              #### Patient tab title----
-              fluidRow(h2("Patient Data")),
-              #### Patient tab filters
-              fluidRow(
-                fluidRow(
-                  box(title = "Research Study Identifier:",
-                      width = 2,
-                      pickerInput("research_study_identifier",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)),
-                  box(title = "Patient Identifier:",
-                      width = 2,
-                      pickerInput("patient_id",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)),
-                  box(title = "Race:",
-                      width = 2,
-                      pickerInput("race",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)),
-                  box(title = "Ethnicity:",
-                      width = 2,
-                      pickerInput("ethnicity",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)),
-                  box(title = "Gender:",
-                      width = 2,
-                      pickerInput("gender",
-                                  label = NULL,
-                                  choices = NULL,
-                                  multiple = TRUE,
-                                  options = picker_defaults)))
-              ),
-              fluidRow(DT::dataTableOutput("patient_table"))),
-      ### Condition tab======
-      tabItem(tabName = "condition_tab",
-              fluidRow(h2("Condition Data Tab")),
+      tabItem(tabName = "cohort_tab",
+              fluidRow(h2("Cohort Creation")),
+              fluidRow(h3("Step 1: Select fields to utilize for filtering and cohort building")),
+              radioButtons("toggle_pt_gend",
+                           label = "Patient: Gender",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_pt_race",
+                           label = "Patient: Race",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_pt_ethn",
+                           label = "Patient: Ethnicity",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_cn_name",
+                           label = "Condition: Name",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_cn_site",
+                           label = "Condition: Site",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_sp_name",
+                           label = "Specimen: Name",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_sp_site",
+                           label = "Specimen: Site",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_dr_doctyp",
+                           label = "DocumentReference: Document Type",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_dr_expstr",
+                           label = "DocumentReference: Experiment Strategy",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              radioButtons("toggle_dr_datcat",
+                           label = "DocumentReference: Data Category",
+                           choices = c("Filter", "Sort", "Both", "Neither"),
+                           inline = TRUE),
+              fluidRow(h3("Step 2: Filter dataset to be used for cohort creation.")),
+              h4("Patient Filters:"),
               fluidRow(
                 column(4,
-                       box(title = "Patient Identifier:",
-                           width = NULL,
-                           pickerInput("condition_patient_id",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)),
-                       box(title = "Clinical Status:",
-                           width = NULL,
-                           pickerInput("clinical_status",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))
-                ),
+                       pickerInput("filter_pt_race",
+                                   label = "Race",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
                 column(4,
-                       box(title = "Verification Status:",
-                           width = NULL,
-                           pickerInput("verification_status",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)),
-                       box(title = "Condition Name:",
-                           width = NULL,
-                           pickerInput("condition_name",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))
-                ),
+                       pickerInput("filter_pt_ethn",
+                                   label = "Ethnicity",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
                 column(4,
-                       box(title = "Body Site Name:",
-                           width = NULL,
-                           pickerInput("condition_body_site_name",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
-              fluidRow(DT::dataTableOutput("condition_table")))),
-      ### Specimen tab======
-      tabItem(tabName = "specimen_tab",
-              fluidRow(h2("Specimen Data Tab")),
+                       pickerInput("filter_pt_gend",
+                                   label = "Gender",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults))),
+              h4("Condition Filters:"),
               fluidRow(
                 column(4,
-                       box(title = "Patient Identifier:",
-                           width = NULL,
-                           pickerInput("specimen_patient_id",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)),
-                       box(title = "Body Site Name:",
-                           width = NULL,
-                           pickerInput("collection_body_type",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
+                       pickerInput("filter_cn_name",
+                                   label = "Name",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
                 column(4,
-                       box(title = "Specimen Identifier:",
-                           width = NULL,
-                           pickerInput("specimen_identifier",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)),
-                       box(title = "Specimen Status:",
-                           width = NULL,
-                           pickerInput("specimen_status",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
-                column(4,
-                       box(title = "Specimen Type Name:",
-                           width = NULL,
-                           pickerInput("specimen_type_name",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)))),
-              fluidRow(DT::dataTableOutput("specimen_table"))),
-      ### Document Reference tab======
-      tabItem(tabName = "docref_tab",
-              fluidRow(h2("Document Reference Tab")),
+                       pickerInput("filter_cn_site",
+                                   label = "Body Site",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults))),
+              h4("Specimen Filters:"),
               fluidRow(
-                column(3,
-                       box(title = "Patient Identifier:",
-                           width = NULL,
-                           pickerInput("docref_patient_id",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
-                column(3,
-                       box(title = "Document Type:",
-                           width = NULL,
-                           pickerInput("doc_type",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
-                column(3,
-                       box(title = "Experiment Strategy:",
-                           width = NULL,
-                           pickerInput("experiment_strategy",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults))),
-                column(3,
-                       box(title = "Data Category:",
-                           width = NULL,
-                           pickerInput("data_category",
-                                       label = NULL,
-                                       choices = NULL,
-                                       multiple = TRUE,
-                                       options = picker_defaults)))
-              ),
-              fluidRow(DT::dataTableOutput("docref_table")))
+                column(4,
+                       pickerInput("filter_sp_name",
+                                   label = "Name",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
+                column(4,
+                       pickerInput("filter_sp_site",
+                                   label = "Body Site",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults))),
+              h4("Document Reference Filters:"),
+              fluidRow(
+                column(4,
+                       pickerInput("filter_dr_doctyp",
+                                   label = "Document Type",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
+                column(4,
+                       pickerInput("filter_dr_expstr",
+                                   label = "Experiment Strategy",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults)),
+                column(4,
+                       pickerInput("filter_dr_datcat",
+                                   label = "Data Category",
+                                   choices = NULL,
+                                   multiple = TRUE,
+                                   options = picker_defaults))),
+              fluidRow(h3("Step 3: Create virtual cohorts using selected categories and thresholds.")),
+              uiOutput("sort_pt_gend"),
+              uiOutput("sort_pt_race"),
+              uiOutput("sort_pt_ethn"),
+              uiOutput("sort_cn_name"),
+              uiOutput("sort_cn_site"),
+              uiOutput("sort_sp_name"),
+              uiOutput("sort_sp_site"),
+              uiOutput("sort_dr_doctyp"),
+              uiOutput("sort_dr_expstr"),
+              uiOutput("sort_dr_datcat"),
+              fluidRow(h3("Step 4: Review and download cohort data.")),
+              actionButton("download", "Download Dataset"))
     )
   )
 )
@@ -226,11 +176,6 @@ server <- function(input, output, session) {
   }
 
   apply_cross_filters <- function(data, crossfilter_list) {
-    apply <- !(is.null(cross_filters$patient) ||
-                 is.null(cross_filters$condition) ||
-                 is.null(cross_filters$specimen) ||
-                 is.null(cross_filters$docref))
-    if (apply) return(data)
     for (n in 1:NROW(crossfilter_list)) {
       filter_values <- cross_filters[[crossfilter_list[[n, 2]]]][["Patient Identifier"]]
       if (!is.null(filter_values)) {
@@ -239,84 +184,24 @@ server <- function(input, output, session) {
     }
     return(data)
   }
-  ### Cross-tab filtering=======================================================
-  cross_filters <- reactiveValues(patient = NULL,
-                                  condition = NULL,
-                                  specimen = NULL,
-                                  docref = NULL)
-
-  observeEvent(input$crossfilter_reset, {
-    cross_filters$patient <- NULL
-    cross_filters$condition <- NULL
-    cross_filters$specimen <- NULL
-    cross_filters$docref <- NULL
-  })
-
-  observeEvent(input$crossfilter_patient, {
-    cross_filters$patient <- dataset[["Patient"]] |>
-      apply_tab_filters(tibble::tribble(
-        ~column_name,               ~filter_name,
-        "ResearchStudy Identifier", "research_study_identifier",
-        "Patient Identifier",       "patient_id",
-        "Race",                     "race",
-        "Ethnicity",                "ethnicity",
-        "Gender",                   "gender"
-      )) |>
-      unique()
-  })
-
-  observeEvent(input$crossfilter_condition, {
-    cross_filters$condition <- dataset[["Condition"]] |>
-      apply_tab_filters(tibble::tribble(
-        ~column_name,             ~filter_name,
-        "Patient Identifier",     "condition_patient_id",
-        "Clinical Status",        "clinical_status",
-        "Verification Status",    "verification_status",
-        "Condition Name",         "condition_name",
-        "Body Site Name",         "condition_body_site_name"
-      )) |>
-      unique()
-  })
-
-  observeEvent(input$crossfilter_specimen, {
-    cross_filters$specimen <- dataset[["Specimen"]]|>
-      apply_tab_filters(tibble::tribble(
-        ~column_name,                 ~filter_name,
-        "Patient Identifier",         "specimen_patient_id",
-        "Body Site Name",             "collection_body_name",
-        "Specimen Status",            "specimen_status",
-        "Specimen Type Name",         "specimen_type_name"
-      )) |>
-      unique()
-  })
-
-  observeEvent(input$crossfilter_docref, {
-    cross_filters$docref <- dataset[["DocumentReference"]] |>
-      apply_tab_filters(tibble::tribble(
-        ~column_name,               ~filter_name,
-        "Patient Identifier",       "docref_patient_id",
-        "Document Type",            "doc_type",
-        "Experiment Strategy",      "experiment_strategy",
-        "Data Category",            "data_category",
-        "URL",                      "docref_uri"
-      )) |>
-      unique()
-  })
 
   ### Create combined dataset===================================================
   combined_data <- reactive({
-    data <- cross_filters$patient |>
-      dplyr::left_join(cross_filters$condition,
+    data <- dataset[["Patient"]] |>
+      dplyr::left_join(dataset[["Condition"]],
                        by = "Patient Identifier") |>
-      dplyr::left_join(cross_filters$specimen,
+      dplyr::left_join(dataset[["Specimen"]],
                        by = "Patient Identifier") |>
-      dplyr::left_join(cross_filters$docref,
+      dplyr::left_join(dataset[["DocumentReference"]],
                        by = "Patient Identifier")
     return(data)
   })
 
   ### Filter patient dataset====================================================
   patient_data <- reactive({
+    input$race
+    input$ethnicity
+    input$gender
     data <- dataset[["Patient"]] |>
       dplyr::select("ResearchStudy Identifier",
                     "Patient Identifier",
@@ -342,19 +227,21 @@ server <- function(input, output, session) {
 
   ### Filter condition dataset==================================================
   condition_data <- reactive({
+    input$condition_name
+    input$condition_body_site_name
     data <- dataset[["Condition"]] |>
       dplyr::select("Patient Identifier",
-                    "Clinical Status",
+                    "Condition" = "Condition Name",
+                    "Body Site" = "Body Site Name",
                     "Verification Status",
-                    "Condition Name",
-                    "Body Site Name") |>
+                    "Clinical Status") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,             ~filter_name,
         "Patient Identifier",     "condition_patient_id",
-        "Clinical Status",        "clinical_status",
+        "Condition",              "condition_name",
+        "Body Site",              "condition_body_site_name",
         "Verification Status",    "verification_status",
-        "Condition Name",         "condition_name",
-        "Body Site Name",         "condition_body_site_name"
+        "Clinical Status",        "clinical_status"
       )) |>
       apply_cross_filters(tibble::tribble(
         ~tab_name,       ~filter_name,
@@ -367,17 +254,19 @@ server <- function(input, output, session) {
 
   ### Filter specimen dataset===================================================
   specimen_data <- reactive({
+    input$specimen_type_name
+    input$collection_body_name
     data <- dataset[["Specimen"]]|>
       dplyr::select("Patient Identifier",
-                    "Body Site Name",
                     "Specimen Identifier",
-                    "Specimen Type Name") |>
+                    "Specimen Type" = "Specimen Type Name",
+                    "Body Site" = "Body Site Name") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,                 ~filter_name,
         "Patient Identifier",         "specimen_patient_id",
-        "Body Site Name",             "collection_body_name",
         "Specimen Identifier",        "specimen_identifier",
-        "Specimen Type Name",         "specimen_type_name"
+        "Specimen Type",              "specimen_type_name",
+        "Body Site",                  "collection_body_name"
       )) |>
       apply_cross_filters(tibble::tribble(
         ~tab_name,        ~filter_name,
@@ -390,19 +279,20 @@ server <- function(input, output, session) {
 
   ### Filter document reference dataset=========================================
   docref_data <- reactive({
+    input$doc_type
+    input$experiment_strategy
+    input$data_category
     data <- dataset[["DocumentReference"]] |>
       dplyr::select("Patient Identifier",
-                    "Document Type",
-                    "Experiment Strategy",
+                    "Data Type" = "Document Type",
+                    "Analysis" = "Experiment Strategy",
                     "Data Category",
                     "URL") |>
       apply_tab_filters(tibble::tribble(
         ~column_name,               ~filter_name,
-        "Patient Identifier",       "docref_patient_id",
-        "Document Type",            "doc_type",
-        "Experiment Strategy",      "experiment_strategy",
-        "Data Category",            "data_category",
-        "URL",                      "docref_uri"
+        "Data Type",                "doc_type",
+        "Analysis",                 "experiment_strategy",
+        "Data Category",            "data_category"
       )) |>
       apply_cross_filters(tibble::tribble(
         ~tab_name,        ~filter_name,
@@ -416,266 +306,902 @@ server <- function(input, output, session) {
   ## Populate filter options====================================================
   observe({
     updatePickerInput(session,
-                      "research_study_identifier",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Patient"]]$`ResearchStudy Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "patient_id",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Patient"]]$`Patient Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "race",
+                      "filter_pt_race",
                       selected = NULL,
                       choices = sort(unique(dataset[["Patient"]]$Race)))
   })
   observe({
     updatePickerInput(session,
-                      "ethnicity",
+                      "filter_pt_ethn",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$Ethnicity)))
   })
   observe({
     updatePickerInput(session,
-                      "gender",
+                      "filter_pt_gend",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["Patient"]]$Gender)))
   })
   observe({
     updatePickerInput(session,
-                      "condition_patient_id",
+                      "filter_cn_name",
                       selected = NULL,
                       choices = sort(unique(
-                        dataset[["Condition"]]$`Patient Identifier`)))
+                        dataset[["Condition"]]$`Condition`)))
   })
   observe({
     updatePickerInput(session,
-                      "clinical_status",
+                      "filter_cn_site",
                       selected = NULL,
                       choices = sort(unique(
-                        dataset[["Condition"]]$`Clinical Status`)))
+                        dataset[["Condition"]]$`Body Site`)))
   })
   observe({
     updatePickerInput(session,
-                      "verification_status",
+                      "filter_sp_name",
                       selected = NULL,
                       choices = sort(unique(
-                        dataset[["Condition"]]$`Verification Status`)))
+                        dataset[["Specimen"]]$`Body Site`)))
   })
   observe({
     updatePickerInput(session,
-                      "condition_name",
+                      "filter_sp_site",
                       selected = NULL,
                       choices = sort(unique(
-                        dataset[["Condition"]]$`Condition Name`)))
+                        dataset[["Specimen"]]$`Specimen Type`)))
   })
   observe({
     updatePickerInput(session,
-                      "condition_body_site_name",
+                      "filter_dr_doctyp",
                       selected = NULL,
                       choices = sort(unique(
-                        dataset[["Condition"]]$`Body Site Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_patient_id",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Patient Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "collection_body_type",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Body Site Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_identifier",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Specimen Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "specimen_type_name",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["Specimen"]]$`Specimen Type Name`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "docref_patient_id",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["DocumentReference"]]$`Patient Identifier`)))
-  })
-  observe({
-    updatePickerInput(session,
-                      "doc_type",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["DocumentReference"]]$`Document Type`)))
+                        dataset[["DocumentReference"]]$`Data Type`)))
   })
   observe({
     updatePickerInput(
       session,
-      "experiment_strategy",
+      "filter_dr_expstr",
       selected = NULL,
       choices = sort(unique(
-        dataset[["DocumentReference"]]$`Experiment Strategy`)))
+        dataset[["DocumentReference"]]$`Analysis`)))
   })
   observe({
     updatePickerInput(session,
-                      "data_category",
+                      "filter_dr_datcat",
                       selected = NULL,
                       choices = sort(unique(
                         dataset[["DocumentReference"]]$`Data Category`)))
   })
-  observe({
-    updatePickerInput(session,
-                      "docref_uri",
-                      selected = NULL,
-                      choices = sort(unique(
-                        dataset[["DocumentReference"]]$`URL`)))
+
+  ## Create sortable buckets====================================================
+  pt_gend_cohorts <- reactiveValues(available = unique(dataset[["Patient"]]$Gender),
+                                   available_filtered = unique(dataset[["Patient"]]$Gender),
+                                   cohort_a = NULL,
+                                   cohort_a_filtered = NULL,
+                                   cohort_b = NULL,
+                                   cohort_b_filtered = NULL)
+  pt_race_cohorts <- reactiveValues(available = unique(dataset[["Patient"]]$Race),
+                                    available_filtered = unique(dataset[["Patient"]]$Race),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  pt_ethn_cohorts <- reactiveValues(available = unique(dataset[["Patient"]]$Ethnicity),
+                                    available_filtered = unique(dataset[["Patient"]]$Ethnicity),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  cn_name_cohorts <- reactiveValues(available = unique(dataset[["Condition"]]$`Condition Name`),
+                                    available_filtered = unique(dataset[["Condition"]]$`Condition Name`),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  cn_site_cohorts <- reactiveValues(available = unique(dataset[["Condition"]]$`Body Site Name`),
+                                    available_filtered = unique(dataset[["Condition"]]$`Body Site Name`),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  sp_name_cohorts <- reactiveValues(available = unique(dataset[["Specimen"]]$`Specimen Type Name`),
+                                    available_filtered = unique(dataset[["Specimen"]]$`Specimen Type Name`),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  sp_site_cohorts <- reactiveValues(available = unique(dataset[["Specimen"]]$`Body Site Name`),
+                                    available_filtered = unique(dataset[["Specimen"]]$`Body Site Name`),
+                                    cohort_a = NULL,
+                                    cohort_a_filtered = NULL,
+                                    cohort_b = NULL,
+                                    cohort_b_filtered = NULL)
+  dr_doctyp_cohorts <- reactiveValues(available = unique(dataset[["DocumentReference"]]$`Document Type`),
+                                      available_filtered = unique(dataset[["DocumentReference"]]$`Document Type`),
+                                      cohort_a = NULL,
+                                      cohort_a_filtered = NULL,
+                                      cohort_b = NULL,
+                                      cohort_b_filtered = NULL)
+  dr_expstr_cohorts <- reactiveValues(available = unique(dataset[["DocumentReference"]]$`Experiment Strategy`),
+                                      available_filtered = unique(dataset[["DocumentReference"]]$`Experiment Strategy`),
+                                      cohort_a = NULL,
+                                      cohort_a_filtered = NULL,
+                                      cohort_b = NULL,
+                                      cohort_b_filtered = NULL)
+  dr_datcat_cohorts <- reactiveValues(available = unique(dataset[["DocumentReference"]]$`Data Category`),
+                                      available_filtered = unique(dataset[["DocumentReference"]]$`Data Category`),
+                                      cohort_a = NULL,
+                                      cohort_a_filtered = NULL,
+                                      cohort_b = NULL,
+                                      cohort_b_filtered = NULL)
+
+  output$sort_pt_gend <- renderUI({
+    sortable::bucket_list(
+      header = "Patient: Gender",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = pt_gend_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_gend_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = pt_gend_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_gend_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = pt_gend_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_gend_cohort_b")
+                              ))
+    )
   })
 
-  ## Output datasets to UI======================================================
-  ### Output combined dataset===================================================
-  output$combined_table <- DT::renderDataTable({
-    combined_data()
-  },
-  extensions = list("Buttons" = NULL),
-  options = list(
-    pageLength = 25,
-    dom = "Bfrtip",
-    buttons = list("copy",
-                   "print",
-                   list(extend = "collection",
-                        buttons = c("csv", "excel", "pdf"),
-                        text = "Download")),
-    scrollX = TRUE,
-    scrollY = 500)
-  )
+  observeEvent(input$gender, {
+    if (is.null(input$gender)) {
+      pt_gend_cohorts$available_filtered <- union(pt_gend_cohorts$available,
+                                                 input$filtered_gend_available)
+      pt_gend_cohorts$cohort_a_filtered <- union(pt_gend_cohorts$cohort_a,
+                                                input$filtered_gend_cohort_a)
+      pt_gend_cohorts$cohort_b_filtered <- union(pt_gend_cohorts$cohort_b,
+                                                input$filtered_gend_cohort_b)
 
-  ### Output patient dataset====================================================
-  output$patient_table <- DT::renderDataTable({
-    patient_data()
-  },
-  extensions = list("Buttons" = NULL),
-  options = list(
-    pageLength = 25,
-    dom = "Bfrtip",
-    buttons = list("copy",
-                   "print",
-                   list(extend = "collection",
-                        buttons = c("csv", "excel", "pdf"),
-                        text = "Download"),
-                   list(extend = "collection",
-                        text = "Apply these filters across tabs",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_patient', true, {priority: 'event'});
-                                            alert( 'Cross-tab filtering applied' );
-                                        }")),
-                   list(extend = "collection",
-                        text = "Reset cross-tab filtering",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
-                                            alert( 'Filtering across tabs reset' );
-                                        }"))
+    } else {
+      pt_gend_cohorts$available_filtered <- union(
+        intersect(pt_gend_cohorts$available, input$gender),
+        intersect(input$filtered_gend_available, input$gender))
+      pt_gend_cohorts$cohort_a_filtered <- union(
+        intersect(pt_gend_cohorts$cohort_a, input$gender),
+        intersect(input$filtered_gend_cohort_a, input$gender))
+      pt_gend_cohorts$cohort_b_filtered <- union(
+        intersect(pt_gend_cohorts$cohort_b, input$gender),
+        intersect(input$filtered_gend_cohort_b, input$gender))
+    }
+  })
+
+  observeEvent(input$filtered_gend_available, {
+    pt_gend_cohorts$available <-
+      setdiff(union(pt_gend_cohorts$available, input$filtered_gend_available),
+              union(input$filtered_gend_cohort_a, input$filtered_gend_cohort_b))
+    pt_gend_cohorts$available_filtered <- input$filtered_gend_available
+  })
+
+  observeEvent(input$filtered_gend_cohort_a, {
+    pt_gend_cohorts$cohort_a <-
+      setdiff(union(pt_gend_cohorts$cohort_a, input$filtered_gend_cohort_a),
+              union(input$filtered_gend_available, input$filtered_gend_cohort_b))
+    pt_gend_cohorts$cohort_a_filtered <- input$filtered_gend_cohort_a
+  })
+
+  observeEvent(input$filtered_gend_cohort_b, {
+    pt_gend_cohorts$cohort_b <-
+      setdiff(union(pt_gend_cohorts$cohort_b, input$filtered_gend_cohort_b),
+            union(input$filtered_gend_available, input$filtered_gend_cohort_a))
+    pt_gend_cohorts$cohort_b_filtered <- input$filtered_gend_cohort_b
+  })
+
+  output$sort_pt_race <- renderUI({
+    sortable::bucket_list(
+      header = "Patient: Race",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = pt_race_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_race_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = pt_race_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_race_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = pt_race_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_race_cohort_b")
+                              ))
     )
-  ))
+  })
 
-  ### Output condition dataset==================================================
-  output$condition_table <- DT::renderDataTable({
-    condition_data()
-  },
-  extensions = list("Buttons" = NULL),
-  options = list(
-    pageLength = 25,
-    dom = "Bfrtip",
-    buttons = list("copy", "print", list(extend = "collection",
-                                         buttons = c("csv", "excel", "pdf"),
-                                         text = "Download"),
-                   list(extend = "collection",
-                        text = "Apply these filters across tabs",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_condition', true, {priority: 'event'});
-                                            alert( 'Cross-tab filtering applied' );
-                                        }")),
-                   list(extend = "collection",
-                        text = "Reset cross-tab filtering",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
-                                            alert( 'Filtering across tabs reset' );
-                                        }"))
+  observeEvent(input$race, {
+    if (is.null(input$race)) {
+      pt_race_cohorts$available_filtered <- union(pt_race_cohorts$available,
+                                                 input$filtered_race_available)
+      pt_race_cohorts$cohort_a_filtered <- union(pt_race_cohorts$cohort_a,
+                                                input$filtered_race_cohort_a)
+      pt_race_cohorts$cohort_b_filtered <- union(pt_race_cohorts$cohort_b,
+                                                input$filtered_race_cohort_b)
+
+    } else {
+      pt_race_cohorts$available_filtered <- union(
+        intersect(pt_race_cohorts$available, input$race),
+        intersect(input$filtered_race_available, input$race))
+      pt_race_cohorts$cohort_a_filtered <- union(
+        intersect(pt_race_cohorts$cohort_a, input$race),
+        intersect(input$filtered_race_cohort_a, input$race))
+      pt_race_cohorts$cohort_b_filtered <- union(
+        intersect(pt_race_cohorts$cohort_b, input$race),
+        intersect(input$filtered_race_cohort_b, input$race))
+    }
+  })
+
+  observeEvent(input$filtered_race_available, {
+    pt_race_cohorts$available <-
+      setdiff(union(pt_race_cohorts$available, input$filtered_race_available),
+              union(input$filtered_race_cohort_a, input$filtered_race_cohort_b))
+    pt_race_cohorts$available_filtered <- input$filtered_race_available
+  })
+
+  observeEvent(input$filtered_race_cohort_a, {
+    pt_race_cohorts$cohort_a <-
+      setdiff(union(pt_race_cohorts$cohort_a, input$filtered_race_cohort_a),
+              union(input$filtered_race_available, input$filtered_race_cohort_b))
+    pt_race_cohorts$cohort_a_filtered <- input$filtered_race_cohort_a
+  })
+
+  observeEvent(input$filtered_race_cohort_b, {
+    pt_race_cohorts$cohort_b <-
+      setdiff(union(pt_race_cohorts$cohort_b, input$filtered_race_cohort_b),
+              union(input$filtered_race_available, input$filtered_race_cohort_a))
+    pt_race_cohorts$cohort_b_filtered <- input$filtered_race_cohort_b
+  })
+
+  output$sort_pt_ethn <- renderUI({
+    sortable::bucket_list(
+      header = "Patient: Ethnicity",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = pt_ethn_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_ethn_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = pt_ethn_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_ethn_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = pt_ethn_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_ethn_cohort_b")
+                              ))
     )
-  ))
+  })
 
-  ### Output specimen dataset===================================================
-  output$specimen_table <- DT::renderDataTable({
-    specimen_data()
-  },
-  extensions = list("Buttons" = NULL),
-  options = list(
-    pageLength = 25,
-    dom = "Bfrtip",
-    buttons = list("copy",
-                   "print",
-                   list(extend = "collection",
-                        buttons = c("csv", "excel", "pdf"),
-                        text = "Download"),
-                   list(extend = "collection",
-                        text = "Apply these filters across tabs",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_specimen', true, {priority: 'event'});
-                                            alert( 'Cross-tab filtering applied' );
-                                        }")),
-                   list(extend = "collection",
-                        text = "Reset cross-tab filtering",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
-                                            alert( 'Filtering across tabs reset' );
-                                       }"))
+  observeEvent(input$ethnicity, {
+    if (is.null(input$ethnicity)) {
+      pt_ethn_cohorts$available_filtered <- union(pt_ethn_cohorts$available,
+                                                 input$filtered_ethn_available)
+      pt_ethn_cohorts$cohort_a_filtered <- union(pt_ethn_cohorts$cohort_a,
+                                                input$filtered_ethn_cohort_a)
+      pt_ethn_cohorts$cohort_b_filtered <- union(pt_ethn_cohorts$cohort_b,
+                                                input$filtered_ethn_cohort_b)
+
+    } else {
+      pt_ethn_cohorts$available_filtered <- union(
+        intersect(pt_ethn_cohorts$available, input$ethnicity),
+        intersect(input$filtered_ethn_available, input$ethnicity))
+      pt_ethn_cohorts$cohort_a_filtered <- union(
+        intersect(pt_ethn_cohorts$cohort_a, input$ethnicity),
+        intersect(input$filtered_ethn_cohort_a, input$ethnicity))
+      pt_ethn_cohorts$cohort_b_filtered <- union(
+        intersect(pt_ethn_cohorts$cohort_b, input$ethnicity),
+        intersect(input$filtered_ethn_cohort_b, input$ethnicity))
+    }
+  })
+
+  observeEvent(input$filtered_ethn_available, {
+    pt_ethn_cohorts$available <-
+      setdiff(union(pt_ethn_cohorts$available, input$filtered_ethn_available),
+              union(input$filtered_ethn_cohort_a, input$filtered_ethn_cohort_b))
+    pt_ethn_cohorts$available_filtered <- input$filtered_ethn_available
+  })
+
+  observeEvent(input$filtered_ethn_cohort_a, {
+    pt_ethn_cohorts$cohort_a <-
+      setdiff(union(pt_ethn_cohorts$cohort_a, input$filtered_ethn_cohort_a),
+              union(input$filtered_ethn_available, input$filtered_ethn_cohort_b))
+    pt_ethn_cohorts$cohort_a_filtered <- input$filtered_ethn_cohort_a
+  })
+
+  observeEvent(input$filtered_ethn_cohort_b, {
+    pt_ethn_cohorts$cohort_b <-
+      setdiff(union(pt_ethn_cohorts$cohort_b, input$filtered_ethn_cohort_b),
+              union(input$filtered_ethn_available, input$filtered_ethn_cohort_a))
+    pt_ethn_cohorts$cohort_b_filtered <- input$filtered_ethn_cohort_b
+  })
+
+  output$sort_cn_name <- renderUI({
+    sortable::bucket_list(
+      header = "Condition: Name",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = cn_name_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_name_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = cn_name_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_name_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = cn_name_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_name_cohort_b")
+                              ))
     )
-  ))
+  })
 
-  ### Output document reference dataset=========================================
-  output$docref_table <- DT::renderDataTable({
-    docref_data()
-  },
-  extensions = list("Buttons" = NULL),
-  options = list(
-    pageLength = 25,
-    dom = "Bfrtip",
-    buttons = list("copy",
-                   "print",
-                   list(extend = "collection",
-                        buttons = c("csv", "excel", "pdf"),
-                        text = "Download"),
-                   list(extend = "collection",
-                        text = "Apply these filters across tabs",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_docref', true, {priority: 'event'});
-                                            alert( 'Cross-tab filtering applied' );
-                                        }")),
-                   list(extend = "collection",
-                        text = "Reset cross-tab filtering",
-                        action = DT::JS("function( e, dt, node, config ) {
-                                            Shiny.setInputValue('crossfilter_reset', true, {priority: 'event'});
-                                            alert( 'Filtering across tabs reset' );
-                                       }"))
-    ))
-  )
-}
+  observeEvent(input$condition_name, {
+    if (is.null(input$condition_name)) {
+      cn_name_cohorts$available_filtered <- union(cn_name_cohorts$available,
+                                                 input$filtered_cn_name_available)
+      cn_name_cohorts$cohort_a_filtered <- union(cn_name_cohorts$cohort_a,
+                                                input$filtered_cn_name_cohort_a)
+      cn_name_cohorts$cohort_b_filtered <- union(cn_name_cohorts$cohort_b,
+                                                input$filtered_cn_name_cohort_b)
+
+    } else {
+      cn_name_cohorts$available_filtered <- union(
+        intersect(cn_name_cohorts$available, input$condition_name),
+        intersect(input$filtered_cn_name_available, input$condition_name))
+      cn_name_cohorts$cohort_a_filtered <- union(
+        intersect(cn_name_cohorts$cohort_a, input$condition_name),
+        intersect(input$filtered_cn_name_cohort_a, input$condition_name))
+      cn_name_cohorts$cohort_b_filtered <- union(
+        intersect(cn_name_cohorts$cohort_b, input$condition_name),
+        intersect(input$filtered_cn_name_cohort_b, input$condition_name))
+    }
+  })
+
+  observeEvent(input$filtered_cn_name_available, {
+    cn_name_cohorts$available <-
+      setdiff(union(cn_name_cohorts$available, input$filtered_cn_name_available),
+              union(input$filtered_cn_name_cohort_a, input$filtered_cn_name_cohort_b))
+    cn_name_cohorts$available_filtered <- input$filtered_cn_name_available
+  })
+
+  observeEvent(input$filtered_cn_name_cohort_a, {
+    cn_name_cohorts$cohort_a <-
+      setdiff(union(cn_name_cohorts$cohort_a, input$filtered_cn_name_cohort_a),
+              union(input$filtered_cn_name_available, input$filtered_cn_name_cohort_b))
+    cn_name_cohorts$cohort_a_filtered <- input$filtered_cn_name_cohort_a
+  })
+
+  observeEvent(input$filtered_cn_name_cohort_b, {
+    cn_name_cohorts$cohort_b <-
+      setdiff(union(cn_name_cohorts$cohort_b, input$filtered_cn_name_cohort_b),
+              union(input$filtered_cn_name_available, input$filtered_cn_name_cohort_a))
+    cn_name_cohorts$cohort_b_filtered <- input$filtered_cn_name_cohort_b
+  })
+
+  output$sort_cn_site <- renderUI({
+    sortable::bucket_list(
+      header = "Condition: Site",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = cn_site_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_site_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = cn_site_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_site_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = cn_site_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_cn_site_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$condition_body_site_name, {
+    if (is.null(input$condition_body_site_name)) {
+      cn_site_cohorts$available_filtered <- union(cn_site_cohorts$available,
+                                                  input$filtered_cn_site_available)
+      cn_site_cohorts$cohort_a_filtered <- union(cn_site_cohorts$cohort_a,
+                                                 input$filtered_cn_site_cohort_a)
+      cn_site_cohorts$cohort_b_filtered <- union(cn_site_cohorts$cohort_b,
+                                                 input$filtered_cn_site_cohort_b)
+
+    } else {
+      cn_site_cohorts$available_filtered <- union(
+        intersect(cn_site_cohorts$available, input$condition_body_site_name),
+        intersect(input$filtered_cn_site_available, input$condition_body_site_name))
+      cn_site_cohorts$cohort_a_filtered <- union(
+        intersect(cn_site_cohorts$cohort_a, input$condition_body_site_name),
+        intersect(input$filtered_cn_site_cohort_a, input$condition_body_site_name))
+      cn_site_cohorts$cohort_b_filtered <- union(
+        intersect(cn_site_cohorts$cohort_b, input$condition_body_site_name),
+        intersect(input$filtered_cn_site_cohort_b, input$condition_body_site_name))
+    }
+  })
+
+  observeEvent(input$filtered_cn_site_available, {
+    cn_site_cohorts$available <-
+      setdiff(union(cn_site_cohorts$available, input$filtered_cn_site_available),
+              union(input$filtered_cn_site_cohort_a, input$filtered_cn_site_cohort_b))
+    cn_site_cohorts$available_filtered <- input$filtered_cn_site_available
+  })
+
+  observeEvent(input$filtered_cn_site_cohort_a, {
+    cn_site_cohorts$cohort_a <-
+      setdiff(union(cn_site_cohorts$cohort_a, input$filtered_cn_site_cohort_a),
+              union(input$filtered_cn_site_available, input$filtered_cn_site_cohort_b))
+    cn_site_cohorts$cohort_a_filtered <- input$filtered_cn_site_cohort_a
+  })
+
+  observeEvent(input$filtered_cn_site_cohort_b, {
+    cn_site_cohorts$cohort_b <-
+      setdiff(union(cn_site_cohorts$cohort_b, input$filtered_cn_site_cohort_b),
+              union(input$filtered_cn_site_available, input$filtered_cn_site_cohort_a))
+    cn_site_cohorts$cohort_b_filtered <- input$filtered_cn_site_cohort_b
+  })
+
+  output$sort_sp_name <- renderUI({
+    sortable::bucket_list(
+      header = "Specimen: Name",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = sp_name_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_name_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = sp_name_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_name_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = sp_name_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_name_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$specimen_type_name, {
+    if (is.null(input$specimen_type_name)) {
+      sp_name_cohorts$available_filtered <- union(sp_name_cohorts$available,
+                                                  input$filtered_sp_name_available)
+      sp_name_cohorts$cohort_a_filtered <- union(sp_name_cohorts$cohort_a,
+                                                 input$filtered_sp_name_cohort_a)
+      sp_name_cohorts$cohort_b_filtered <- union(sp_name_cohorts$cohort_b,
+                                                 input$filtered_sp_name_cohort_b)
+
+    } else {
+      sp_name_cohorts$available_filtered <- union(
+        intersect(sp_name_cohorts$available, input$specimen_type_name),
+        intersect(input$filtered_sp_name_available, input$specimen_type_name))
+      sp_name_cohorts$cohort_a_filtered <- union(
+        intersect(sp_name_cohorts$cohort_a, input$specimen_type_name),
+        intersect(input$filtered_sp_name_cohort_a, input$specimen_type_name))
+      sp_name_cohorts$cohort_b_filtered <- union(
+        intersect(sp_name_cohorts$cohort_b, input$specimen_type_name),
+        intersect(input$filtered_sp_name_cohort_b, input$specimen_type_name))
+    }
+  })
+
+  observeEvent(input$filtered_sp_name_available, {
+    sp_name_cohorts$available <-
+      setdiff(union(sp_name_cohorts$available, input$filtered_sp_name_available),
+              union(input$filtered_sp_name_cohort_a, input$filtered_sp_name_cohort_b))
+    sp_name_cohorts$available_filtered <- input$filtered_sp_name_available
+  })
+
+  observeEvent(input$filtered_sp_name_cohort_a, {
+    sp_name_cohorts$cohort_a <-
+      setdiff(union(sp_name_cohorts$cohort_a, input$filtered_sp_name_cohort_a),
+              union(input$filtered_sp_name_available, input$filtered_sp_name_cohort_b))
+    sp_name_cohorts$cohort_a_filtered <- input$filtered_sp_name_cohort_a
+  })
+
+  observeEvent(input$filtered_sp_name_cohort_b, {
+    sp_name_cohorts$cohort_b <-
+      setdiff(union(sp_name_cohorts$cohort_b, input$filtered_sp_name_cohort_b),
+              union(input$filtered_sp_name_available, input$filtered_sp_name_cohort_a))
+    sp_name_cohorts$cohort_b_filtered <- input$filtered_sp_name_cohort_b
+  })
+
+  output$sort_sp_site <- renderUI({
+    sortable::bucket_list(
+      header = "Specimen: Site",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = sp_site_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_site_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = sp_site_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_site_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = sp_site_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_sp_site_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$collection_body_type, {
+    if (is.null(input$collection_body_type)) {
+      sp_site_cohorts$available_filtered <- union(sp_site_cohorts$available,
+                                                  input$filtered_sp_site_available)
+      sp_site_cohorts$cohort_a_filtered <- union(sp_site_cohorts$cohort_a,
+                                                 input$filtered_sp_site_cohort_a)
+      sp_site_cohorts$cohort_b_filtered <- union(sp_site_cohorts$cohort_b,
+                                                 input$filtered_sp_site_cohort_b)
+
+    } else {
+      sp_site_cohorts$available_filtered <- union(
+        intersect(sp_site_cohorts$available, input$collection_body_type),
+        intersect(input$filtered_sp_site_available, input$collection_body_type))
+      sp_site_cohorts$cohort_a_filtered <- union(
+        intersect(sp_site_cohorts$cohort_a, input$collection_body_type),
+        intersect(input$filtered_sp_site_cohort_a, input$collection_body_type))
+      sp_site_cohorts$cohort_b_filtered <- union(
+        intersect(sp_site_cohorts$cohort_b, input$collection_body_type),
+        intersect(input$filtered_sp_site_cohort_b, input$collection_body_type))
+    }
+  })
+
+  observeEvent(input$filtered_sp_site_available, {
+    sp_site_cohorts$available <-
+      setdiff(union(sp_site_cohorts$available, input$filtered_sp_site_available),
+              union(input$filtered_sp_site_cohort_a, input$filtered_sp_site_cohort_b))
+    sp_site_cohorts$available_filtered <- input$filtered_sp_site_available
+  })
+
+  observeEvent(input$filtered_sp_site_cohort_a, {
+    sp_site_cohorts$cohort_a <-
+      setdiff(union(sp_site_cohorts$cohort_a, input$filtered_sp_site_cohort_a),
+              union(input$filtered_sp_site_available, input$filtered_sp_site_cohort_b))
+    sp_site_cohorts$cohort_a_filtered <- input$filtered_sp_site_cohort_a
+  })
+
+  observeEvent(input$filtered_sp_site_cohort_b, {
+    sp_site_cohorts$cohort_b <-
+      setdiff(union(sp_site_cohorts$cohort_b, input$filtered_sp_site_cohort_b),
+              union(input$filtered_sp_site_available, input$filtered_sp_site_cohort_a))
+    sp_site_cohorts$cohort_b_filtered <- input$filtered_sp_site_cohort_b
+  })
+
+  output$sort_dr_doctyp <- renderUI({
+    sortable::bucket_list(
+      header = "Document Reference: Document Type",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = dr_doctyp_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_doctyp_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = dr_doctyp_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_doctyp_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = dr_doctyp_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_doctyp_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$doc_type, {
+    if (is.null(input$doc_type)) {
+      dr_doctyp_cohorts$available_filtered <- union(dr_doctyp_cohorts$available,
+                                                  input$filtered_dr_doctyp_available)
+      dr_doctyp_cohorts$cohort_a_filtered <- union(dr_doctyp_cohorts$cohort_a,
+                                                 input$filtered_dr_doctyp_cohort_a)
+      dr_doctyp_cohorts$cohort_b_filtered <- union(dr_doctyp_cohorts$cohort_b,
+                                                 input$filtered_dr_doctyp_cohort_b)
+
+    } else {
+      dr_doctyp_cohorts$available_filtered <- union(
+        intersect(dr_doctyp_cohorts$available, input$doc_type),
+        intersect(input$filtered_dr_doctyp_available, input$doc_type))
+      dr_doctyp_cohorts$cohort_a_filtered <- union(
+        intersect(dr_doctyp_cohorts$cohort_a, input$doc_type),
+        intersect(input$filtered_dr_doctyp_cohort_a, input$doc_type))
+      dr_doctyp_cohorts$cohort_b_filtered <- union(
+        intersect(dr_doctyp_cohorts$cohort_b, input$doc_type),
+        intersect(input$filtered_dr_doctyp_cohort_b, input$doc_type))
+    }
+  })
+
+  observeEvent(input$filtered_dr_doctyp_available, {
+    dr_doctyp_cohorts$available <-
+      setdiff(union(dr_doctyp_cohorts$available, input$filtered_dr_doctyp_available),
+              union(input$filtered_dr_doctyp_cohort_a, input$filtered_dr_doctyp_cohort_b))
+    dr_doctyp_cohorts$available_filtered <- input$filtered_dr_doctyp_available
+  })
+
+  observeEvent(input$filtered_dr_doctyp_cohort_a, {
+    dr_doctyp_cohorts$cohort_a <-
+      setdiff(union(dr_doctyp_cohorts$cohort_a, input$filtered_dr_doctyp_cohort_a),
+              union(input$filtered_dr_doctyp_available, input$filtered_dr_doctyp_cohort_b))
+    dr_doctyp_cohorts$cohort_a_filtered <- input$filtered_dr_doctyp_cohort_a
+  })
+
+  observeEvent(input$filtered_dr_doctyp_cohort_b, {
+    dr_doctyp_cohorts$cohort_b <-
+      setdiff(union(dr_doctyp_cohorts$cohort_b, input$filtered_dr_doctyp_cohort_b),
+              union(input$filtered_dr_doctyp_available, input$filtered_dr_doctyp_cohort_a))
+    dr_doctyp_cohorts$cohort_b_filtered <- input$filtered_dr_doctyp_cohort_b
+  })
+
+  output$sort_dr_expstr <- renderUI({
+    sortable::bucket_list(
+      header = "Document Reference: Experiment Strategy",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = dr_expstr_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_expstr_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = dr_expstr_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_expstr_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = dr_expstr_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_expstr_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$experiment_strategy, {
+    if (is.null(input$experiment_strategy)) {
+      dr_expstr_cohorts$available_filtered <- union(dr_expstr_cohorts$available,
+                                                  input$filtered_dr_expstr_available)
+      dr_expstr_cohorts$cohort_a_filtered <- union(dr_expstr_cohorts$cohort_a,
+                                                 input$filtered_dr_expstr_cohort_a)
+      dr_expstr_cohorts$cohort_b_filtered <- union(dr_expstr_cohorts$cohort_b,
+                                                 input$filtered_dr_expstr_cohort_b)
+
+    } else {
+      dr_expstr_cohorts$available_filtered <- union(
+        intersect(dr_expstr_cohorts$available, input$experiment_strategy),
+        intersect(input$filtered_dr_expstr_available, input$experiment_strategy))
+      dr_expstr_cohorts$cohort_a_filtered <- union(
+        intersect(dr_expstr_cohorts$cohort_a, input$experiment_strategy),
+        intersect(input$filtered_dr_expstr_cohort_a, input$experiment_strategy))
+      dr_expstr_cohorts$cohort_b_filtered <- union(
+        intersect(dr_expstr_cohorts$cohort_b, input$experiment_strategy),
+        intersect(input$filtered_dr_expstr_cohort_b, input$experiment_strategy))
+    }
+  })
+
+  observeEvent(input$filtered_dr_expstr_available, {
+    dr_expstr_cohorts$available <-
+      setdiff(union(dr_expstr_cohorts$available, input$filtered_dr_expstr_available),
+              union(input$filtered_dr_expstr_cohort_a, input$filtered_dr_expstr_cohort_b))
+    dr_expstr_cohorts$available_filtered <- input$filtered_dr_expstr_available
+  })
+
+  observeEvent(input$filtered_dr_expstr_cohort_a, {
+    dr_expstr_cohorts$cohort_a <-
+      setdiff(union(dr_expstr_cohorts$cohort_a, input$filtered_dr_expstr_cohort_a),
+              union(input$filtered_dr_expstr_available, input$filtered_dr_expstr_cohort_b))
+    dr_expstr_cohorts$cohort_a_filtered <- input$filtered_dr_expstr_cohort_a
+  })
+
+  observeEvent(input$filtered_dr_expstr_cohort_b, {
+    dr_expstr_cohorts$cohort_b <-
+      setdiff(union(dr_expstr_cohorts$cohort_b, input$filtered_dr_expstr_cohort_b),
+              union(input$filtered_dr_expstr_available, input$filtered_dr_expstr_cohort_a))
+    dr_expstr_cohorts$cohort_b_filtered <- input$filtered_dr_expstr_cohort_b
+  })
+
+  output$sort_dr_datcat <- renderUI({
+    sortable::bucket_list(
+      header = "Document Reference: Data Category",
+      sortable::add_rank_list(text = "Select from here",
+                              labels = dr_datcat_cohorts$available_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_datcat_available")
+                              )),
+      sortable::add_rank_list(text = "Cohort A",
+                              labels = dr_datcat_cohorts$cohort_a_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_datcat_cohort_a")
+                              )),
+      sortable::add_rank_list(text = "Cohort B",
+                              labels = dr_datcat_cohorts$cohort_b_filtered,
+                              options = sortable::sortable_options(
+                                onSort = sortable::sortable_js_capture_input("filtered_dr_datcat_cohort_b")
+                              ))
+    )
+  })
+
+  observeEvent(input$data_category, {
+    if (is.null(input$data_category)) {
+      dr_datcat_cohorts$available_filtered <- union(dr_datcat_cohorts$available,
+                                                  input$filtered_dr_datcat_available)
+      dr_datcat_cohorts$cohort_a_filtered <- union(dr_datcat_cohorts$cohort_a,
+                                                 input$filtered_dr_datcat_cohort_a)
+      dr_datcat_cohorts$cohort_b_filtered <- union(dr_datcat_cohorts$cohort_b,
+                                                 input$filtered_dr_datcat_cohort_b)
+
+    } else {
+      dr_datcat_cohorts$available_filtered <- union(
+        intersect(dr_datcat_cohorts$available, input$data_category),
+        intersect(input$filtered_dr_datcat_available, input$data_category))
+      dr_datcat_cohorts$cohort_a_filtered <- union(
+        intersect(dr_datcat_cohorts$cohort_a, input$data_category),
+        intersect(input$filtered_dr_datcat_cohort_a, input$data_category))
+      dr_datcat_cohorts$cohort_b_filtered <- union(
+        intersect(dr_datcat_cohorts$cohort_b, input$data_category),
+        intersect(input$filtered_dr_datcat_cohort_b, input$data_category))
+    }
+  })
+
+  observeEvent(input$filtered_dr_datcat_available, {
+    dr_datcat_cohorts$available <-
+      setdiff(union(dr_datcat_cohorts$available, input$filtered_dr_datcat_available),
+              union(input$filtered_dr_datcat_cohort_a, input$filtered_dr_datcat_cohort_b))
+    dr_datcat_cohorts$available_filtered <- input$filtered_dr_datcat_available
+  })
+
+  observeEvent(input$filtered_dr_datcat_cohort_a, {
+    dr_datcat_cohorts$cohort_a <-
+      setdiff(union(dr_datcat_cohorts$cohort_a, input$filtered_dr_datcat_cohort_a),
+              union(input$filtered_dr_datcat_available, input$filtered_dr_datcat_cohort_b))
+    dr_datcat_cohorts$cohort_a_filtered <- input$filtered_dr_datcat_cohort_a
+  })
+
+  observeEvent(input$filtered_dr_datcat_cohort_b, {
+    dr_datcat_cohorts$cohort_b <-
+      setdiff(union(dr_datcat_cohorts$cohort_b, input$filtered_dr_datcat_cohort_b),
+              union(input$filtered_dr_datcat_available, input$filtered_dr_datcat_cohort_a))
+    dr_datcat_cohorts$cohort_b_filtered <- input$filtered_dr_datcat_cohort_b
+  })
+
+  ## Show or hide filter and sort options=========================================
+  observeEvent(input$toggle_pt_gend, {
+    if (input$toggle_pt_gend %in% c("Filter", "Both")) {
+      shinyjs::show("filter_pt_gend")
+    } else {
+      shinyjs::hide("filter_pt_gend")
+    }
+    if (input$toggle_pt_gend %in% c("Sort", "Both")) {
+      shinyjs::show("sort_pt_gend")
+    } else {
+      shinyjs::hide("sort_pt_gend")
+    }
+  })
+  observeEvent(input$toggle_pt_race, {
+    if (input$toggle_pt_race %in% c("Filter", "Both")) {
+      shinyjs::show("filter_pt_race")
+    } else {
+      shinyjs::hide("filter_pt_race")
+    }
+    if (input$toggle_pt_race %in% c("Sort", "Both")) {
+      shinyjs::show("sort_pt_race")
+    } else {
+      shinyjs::hide("sort_pt_race")
+    }
+  })
+  observeEvent(input$toggle_pt_ethn, {
+    if (input$toggle_pt_ethn %in% c("Filter", "Both")) {
+      shinyjs::show("filter_pt_ethn")
+    } else {
+      shinyjs::hide("filter_pt_ethn")
+    }
+    if (input$toggle_pt_ethn %in% c("Sort", "Both")) {
+      shinyjs::show("sort_pt_ethn")
+    } else {
+      shinyjs::hide("sort_pt_ethn")
+    }
+  })
+  observeEvent(input$toggle_cn_name, {
+    if (input$toggle_cn_name %in% c("Filter", "Both")) {
+      shinyjs::show("filter_cn_name")
+    } else {
+      shinyjs::hide("filter_cn_name")
+    }
+    if (input$toggle_cn_name %in% c("Sort", "Both")) {
+      shinyjs::show("sort_cn_name")
+    } else {
+      shinyjs::hide("sort_cn_name")
+    }
+  })
+  observeEvent(input$toggle_cn_site, {
+    if (input$toggle_cn_site %in% c("Filter", "Both")) {
+      shinyjs::show("filter_cn_site")
+    } else {
+      shinyjs::hide("filter_cn_site")
+    }
+    if (input$toggle_cn_site %in% c("Sort", "Both")) {
+      shinyjs::show("sort_cn_site")
+    } else {
+      shinyjs::hide("sort_cn_site")
+    }
+  })
+  observeEvent(input$toggle_sp_name, {
+    if (input$toggle_sp_name %in% c("Filter", "Both")) {
+      shinyjs::show("filter_sp_name")
+    } else {
+      shinyjs::hide("filter_sp_name")
+    }
+    if (input$toggle_sp_name %in% c("Sort", "Both")) {
+      shinyjs::show("sort_sp_name")
+    } else {
+      shinyjs::hide("sort_sp_name")
+    }
+  })
+  observeEvent(input$toggle_sp_site, {
+    if (input$toggle_sp_site %in% c("Filter", "Both")) {
+      shinyjs::show("filter_sp_site")
+    } else {
+      shinyjs::hide("filter_sp_site")
+    }
+    if (input$toggle_sp_site %in% c("Sort", "Both")) {
+      shinyjs::show("sort_sp_site")
+    } else {
+      shinyjs::hide("sort_sp_site")
+    }
+  })
+  observeEvent(input$toggle_dr_doctyp, {
+    if (input$toggle_dr_doctyp %in% c("Filter", "Both")) {
+      shinyjs::show("filter_dr_doctyp")
+    } else {
+      shinyjs::hide("filter_dr_doctyp")
+    }
+    if (input$toggle_dr_doctyp %in% c("Sort", "Both")) {
+      shinyjs::show("sort_dr_doctyp")
+    } else {
+      shinyjs::hide("sort_dr_doctyp")
+    }
+  })
+  observeEvent(input$toggle_dr_expstr, {
+    if (input$toggle_dr_expstr %in% c("Filter", "Both")) {
+      shinyjs::show("filter_dr_expstr")
+    } else {
+      shinyjs::hide("filter_dr_expstr")
+    }
+    if (input$toggle_dr_expstr %in% c("Sort", "Both")) {
+      shinyjs::show("sort_dr_expstr")
+    } else {
+      shinyjs::hide("sort_dr_expstr")
+    }
+  })
+  observeEvent(input$toggle_dr_datcat, {
+    if (input$toggle_dr_datcat %in% c("Filter", "Both")) {
+      shinyjs::show("filter_dr_datcat")
+    } else {
+      shinyjs::hide("filter_dr_datcat")
+    }
+    if (input$toggle_dr_datcat %in% c("Sort", "Both")) {
+      shinyjs::show("sort_dr_datcat")
+    } else {
+      shinyjs::hide("sort_dr_datcat")
+    }
+  })
+
+  }
+
+
 
 # Bind UI and server to an application==========================================
 shinyApp(ui = ui, server = server)
