@@ -1,0 +1,297 @@
+---
+title: "CLOVoc Intermediate ETL Pipeline"
+output: html_document
+date: "`r format(Sys.Date(), '%Y-%m-%d')`"
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+library(tidyr)
+source("fhir_etl_functions.R")
+```
+
+## Kids First Dataset
+
+Pull Kids First data from CLOVoc endpoint:
+
+```{r kf-auth}
+# Get FHIR credentails
+fhir_api_url <- Sys.getenv("CLOVOC_BASE_URL")
+# fhir_api_cookie <- Sys.getenv("CLOVOC_FHIR_API_COOKIE")
+
+# Define headers
+# cookies <- c(Cookie = fhir_api_cookie)
+```
+
+```{r kf-study, eval=FALSE}
+# /ResearchStudy
+# Description Columns
+resource_columns <- c("Research Study Identifier" = "identifier/value",
+                      "Research Study Title" = "title")
+
+# Grab ResearchStudy resources from FHIR API endpoint
+research_study <- grab_fhir(resource_name = "ResearchStudy",
+                            desc_cols = resource_columns,
+                            url = fhir_api_url,
+                            # cookie = cookies,
+                            format = "compact")
+
+# Remove indices
+research_study <- fhircrackr::fhir_rm_indices(
+  research_study, brackets = c("<<", ">>")
+)
+```
+
+```{r kf-patient}
+# /Patient
+
+# Grab Patient resources from FHIR API endpoint
+# Description Columns
+patient_columns <-
+  c("Study ID" = "meta/tag/code",
+    "Patient ID" = "id",
+    "Patient Identifier" = "identifier/value",
+    "Race ~ Ethnicity" = "extension/extension/valueString",
+    "Gender" = "gender")
+
+# Build a request URL for resource
+patients <-
+  grab_fhir(resource_name = "Patient",
+            desc_cols = patient_columns,
+            url = fhir_api_url,
+            format = "wide",
+            params = c("_count" = "100",
+                       "_tag" = "phs001442"))
+
+# Process Patient Data
+patients %<>%
+  dplyr::mutate(`Study ID` = `<<1.1.1>>Study ID`,
+                `Patient ID` = `<<1>>Patient ID`,
+                `Patient Identifier` = `<<1.1>>Patient Identifier`,
+                `Race` = `<<1.1.1>>Race ~ Ethnicity`,
+                `Ethnicity` = `<<2.1.1>>Race ~ Ethnicity`,
+                `Gender` = `<<1>>Gender`,
+                .keep = "none") %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(`Gender` = stringr::str_to_title(`Gender`)) %>%
+  dplyr::ungroup()
+
+```
+
+```{r kf-observation}
+# /Observation
+# Grab Observation resources from FHIR API endpoint
+# Description Columns
+antibodies_columns <-
+  c("Study ID" = "meta/tag/code",
+    "Patient ID" = "subject/reference",
+    "Test Category" = "category/text",
+    "Test Name" = "code/text",
+    "Value" = "component/valueQuantity/value",
+    "Unit" = "component/valueQuantity/code",
+    "Date Value" = "effectiveDateTime/extension/extension/valueDuration/value",
+    "Date Unit" = "effectiveDateTime/extension/extension/valueDuration/unit",
+    "Interpretation" = "interpretation/text")
+
+chemistry_columns <-
+  c("Study ID" = "meta/tag/code",
+    "Patient ID" = "subject/reference",
+    "Test Category" = "category/text",
+    "Test Name" = "code/text",
+    "Value" = "valueQuantity/value",
+    "Unit" = "valueQuantity/code",
+    "Date Value" = "effectiveDateTime/extension/extension/valueDuration/value",
+    "Date Unit" = "effectiveDateTime/extension/extension/valueDuration/unit")
+
+genotype_columns <-
+  c("Study ID" = "meta/tag/code",
+    "Patient ID" = "subject/reference",
+    "Test Category" = "category/text",
+    "Genotype Result" = "valueCodeableConcept/text")
+
+# Request Resources
+results_antibodies <- grab_fhir(resource_name = "Observation",
+                                desc_cols = antibodies_columns,
+                                url = fhir_api_url,
+                                params = c("_count" = "100",
+                                           "_tag" = "phs001442",
+                                           "code" = "30347-9,34652-8,60463-7",
+                                           "_total" = "accurate"))
+
+results_hba1c <- grab_fhir(resource_name = "Observation",
+                           desc_cols = chemistry_columns,
+                           url = fhir_api_url,
+                           params = c("_count" = "100",
+                                      "_tag" = "phs001442",
+                                      "code" = "4548-4",
+                                      "_total" = "accurate"))
+
+results_ogttpep <- grab_fhir(resource_name = "Observation",
+                             desc_cols = chemistry_columns,
+                             url = fhir_api_url,
+                             params = c("_count" = "100",
+                                        "_tag" = "phs001442",
+                                        "code" = "58522-4,58686-7",
+                                        "_total" = "accurate"))
+
+results_glu <- grab_fhir(resource_name = "Observation",
+                         desc_cols = chemistry_columns,
+                         url = fhir_api_url,
+                         params = c("_count" = "100",
+                                    "_tag" = "phs001442",
+                                    "code" = paste0("12610-2,12639-1[…]",
+                                                    "12651-6,39997-2,",
+                                                    "40003-6,40263-6"),
+                                    "_total" = "accurate"))
+
+results_ogttins <- grab_fhir(resource_name = "Observation",
+                             desc_cols = chemistry_columns,
+                             url = fhir_api_url,
+                             params = c("_count" = "100",
+                                        "_tag" = "phs001442",
+                                        "code" = "47659-8,47668-9",
+                                        "_total" = "accurate"))
+
+results_ogttglu <- grab_fhir(resource_name = "Observation",
+                             desc_cols = chemistry_columns,
+                             url = fhir_api_url,
+                             params = c("_count" = "100",
+                                        "_tag" = "phs001442",
+                                        "code" = "2339-0,49134-0",
+                                        "_total" = "accurate"))
+
+results_genotype <- grab_fhir(resource_name = "Observation",
+                              desc_cols = genotype_columns,
+                              url = fhir_api_url,
+                              params = c("_count" = "100",
+                                         "_tag" = "phs001442",
+                                         "code" = "84413-4",
+                                         "_total" = "accurate"))
+
+# Process Antibodies Results
+results_antibodies %<>%
+  tidyr::separate_wider_delim(
+    cols = "Value",
+    delim = " ~ ",
+    names = c("SEABReference Value", "SEABRepository Value"),
+    too_many = "drop") %>%
+  tidyr::separate_wider_delim(
+    cols = "Unit",
+    delim = " ~ ",
+    names = c("SEABReference Unit", "SEABRepository Unit"),
+    too_many = "drop") %>%
+  fhircrackr::fhir_rm_indices(brackets = c("<<", ">>")) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(`Patient ID` = ParsePatientID(`Patient ID`),
+                `SEABReference Value` = as.numeric(`SEABReference Value`),
+                `SEABRepository Value` = as.numeric(`SEABRepository Value`),
+                `Date Value` = as.numeric(`Date Value`)) %>%
+  dplyr::ungroup()
+
+# Process Chemistry Results
+results_chemistry <- rbind(results_glu,
+                           results_hba1c,
+                           results_ogttglu,
+                           results_ogttins,
+                           results_ogttpep) %>%
+  fhircrackr::fhir_rm_indices(brackets = c("<<", ">>")) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(`Patient ID` = ParsePatientID(`Patient ID`),
+                `Value` = as.numeric(`Value`),
+                `Date Value` = as.numeric(`Date Value`)) %>%
+  dplyr::ungroup()
+
+# Process Genotype Results
+results_genotype_tst <- results_genotype %>%
+  fhircrackr::fhir_rm_indices(brackets = c("<<", ">>")) %>%
+  dplyr::rowwise() %>%
+  dplyr::mutate(`Patient ID` = ParsePatientID(`Patient ID`)) %>%
+  dplyr::ungroup()
+
+```
+
+```{r kf-cache}
+# Cache data frames
+
+## Creating manifest of table structures
+manifest <- list(
+  `Patient Demographics` = list(
+    `Race` = list(
+      grouping = NA,
+      type = "Categorical",
+      unit = NA
+    ),
+    `Ethnicity` = list(
+      grouping = NA,
+      type = "Categorical",
+      unit = NA
+    ),
+    `Gender` = list(
+      grouping = NA,
+      type = "Categorical",
+      unit = NA
+    )
+  ),
+  `Antibodies Results` = list(
+    `SEABReference Value` = list(
+      grouping = "Test Name",
+      type = "Numerical",
+      unit = "SEABReference Unit"
+    ),
+    `SEABRepository Value` = list(
+      grouping = "Test Name",
+      type = "Numerical",
+      unit = "SEABRepository Unit"
+    )
+  ),
+  `Chemistry Results` = list(
+    `Value` = list(
+      grouping = "Test Name",
+      type = "Numerical",
+      unit = "Unit"
+    )
+  ),
+  `Genotype Results` = list(
+    `Genotype Result` = list(
+      grouping = NA,
+      type = "Categorical",
+      unit = NA
+    ))
+)
+
+## Preparing full dataset
+dataset <- list(
+  "Manifest" = manifest,
+  "Patient Demographics" = patients,
+  "Antibodies Results" = results_antibodies,
+  "Chemistry Results" = results_chemistry,
+  "Genotype Results" = results_genotype
+)
+
+```
+
+## Call SPARC API
+
+```{r query-sparc, eval=FALSE}
+body_site_code_list <- unique(dataset$Condition$`Body Site Code`)
+body_site_code_list <- body_site_code_list[body_site_code_list != ""]
+
+
+sci_key <- Sys.getenv("SCICRUNCH_KEY")
+sci_url1 <- "https://scicrunch.org/api/1/sckan-scigraph/dynamic/prod/sparc/phenotypeAnatomy/"
+sci_url2 <- "https://scicrunch.org/api/1/sparc-scigraph/dynamic/prod/sparc/anatomyPhenotypes/"
+sparc_table <- httr::GET(sci_url, query = list(api_key = sci_key)) |>
+  httr::content(as = "text") |>
+  jsonlite::fromJSON()
+
+
+```
+
+## Post Dataset
+```{r post}
+board <- pins::board_connect()
+board |>
+  pins::pin_write(dataset, "nemarichc/clovoc-teddy-dataset", type = "rds")
+```
