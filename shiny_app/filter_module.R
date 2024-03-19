@@ -197,7 +197,7 @@ filterServer <- function(id, dataset) {
     results <- reactiveVal()
 
     observe({
-      req(input$field, field_type())
+      req(input$category, input$field, field_type())
       if (field_type() == "Categorical") {
         req(input$operator_cat, input$categorical)
         results({
