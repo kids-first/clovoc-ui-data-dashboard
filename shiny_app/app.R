@@ -1,10 +1,7 @@
 # TEDDY VERSION OF THE SHINY APP
 # Load packages=================================================================
 library(shiny)
-library(shinyjs)
-library(shinyWidgets)
 library(shinydashboard)
-library(sortable)
 
 # Load modules==================================================================
 source("and_composition_module.R")
