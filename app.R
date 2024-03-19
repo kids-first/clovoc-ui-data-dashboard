@@ -3,11 +3,6 @@
 library(shiny)
 library(shinydashboard)
 
-# Load modules==================================================================
-source("and_composition_module.R")
-source("or_composition_module.R")
-source("filter_module.R")
-
 # Retrieve pinned data==========================================================
 board <- pins::board_connect()
 dataset <- pins::pin_read(board, "nemarichc/clovoc-teddy-dataset")
