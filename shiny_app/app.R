@@ -6,6 +6,11 @@ library(shinyWidgets)
 library(shinydashboard)
 library(sortable)
 
+# Load modules==================================================================
+source("and_composition_module.R")
+source("or_composition_module.R")
+source("filter_module.R")
+
 # Retrieve pinned data==========================================================
 board <- pins::board_connect()
 dataset <- pins::pin_read(board, "nemarichc/clovoc-teddy-dataset")
@@ -44,7 +49,7 @@ ui <- dashboardPage(
               )),
       tabItem(tabName = "download_tab",
               fluidRow(h2("Download Cohort Data")),
-              actionButton("download", "Download Dataset"))
+              downloadButton("downloadData", "Download Dataset"))
     )
   )
 )
@@ -52,9 +57,12 @@ ui <- dashboardPage(
 
 # Server component==============================================================
 server <- function(input, output, session) {
+
   cohort_data <- reactiveValues()
+
   cohort_data[["cohort_filter01"]] <-
     orCompositionServer("cohort_filter01", dataset)
+
   observeEvent(input$addCohortButton, {
     i <- sprintf('%02d', input$addCohortButton + 1)
     cohort_id <- sprintf('cohort%s', i)
@@ -71,6 +79,29 @@ server <- function(input, output, session) {
       orCompositionServer(cohort_filter_id, dataset)
   })
 
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      "cohort_data.csv"
+    },
+    content = function(fname) {
+      print("Generating download...")
+      # Loop on combos of cohorts and tables to generate CSVs
+      outer(names(cohort_data),
+            names(dataset[["Manifest"]]),
+            function(x, y) {
+              print(paste0("Writing CSV for ", x, " and ", y, "..."))
+              write.csv({
+                dataset[[y]]["Patient ID" %in% cohort_data[[x]], ]
+              },
+              file = paste0(tempdir(), "/", x, "_", y, ".csv"))
+            })
+      # Zip all into a single download
+      print("Zipping files...")
+      zip(tempdir(), files = outer(names(cohort_data),
+                                   names(dataset[["Manifest"]]),
+                                   function(x, y) paste0(x, "_", y, ".csv")))
+      },
+    contentType = "application/zip")
 }
 
 
