@@ -2,6 +2,7 @@
 # Load packages=================================================================
 library(shiny)
 library(shinydashboard)
+library(dplyr)
 
 # Retrieve pinned data==========================================================
 board <- pins::board_connect()
